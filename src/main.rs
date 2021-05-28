@@ -3,7 +3,7 @@ use image::{RgbImage, Rgb};
 use std::process::exit;
 use crate::color_list::{MINECRAFT_COLOR_MAP, RgbColorMap};
 use std::fs::File;
-use std::io::Write;
+use std::io::{Write, Read};
 use nbt::{Blob, Map, Value, Error};
 use std::{fs, io};
 use std::path::PathBuf;
@@ -13,6 +13,18 @@ mod color_list;
 #[inline(always)]
 fn ceil_div(dividend: u32, divisor: u32) -> u32 {
     (dividend + divisor - 1) / divisor
+}
+
+fn pause() {
+    let mut stdin = io::stdin();
+    let mut stdout = io::stdout();
+
+    // We want the cursor to stay at the end of the line, so we print without a newline and flush manually.
+    write!(stdout, "Press any key to continue...").unwrap();
+    stdout.flush().unwrap();
+
+    // Read a single byte and discard
+    let _ = stdin.read(&mut [0u8]).unwrap();
 }
 
 fn main() -> Result<(), Error> {
@@ -49,6 +61,7 @@ fn main() -> Result<(), Error> {
             exit(-1);
         }
     };
+    pause();
     Ok(())
 }
 
