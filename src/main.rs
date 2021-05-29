@@ -143,6 +143,8 @@ fn convert_colors(image: &mut RgbImage, map: &RgbColorMap, map_width: usize) -> 
                 let f= *px as f32 / 256.0 + *err as f32 / 256.0 * factor;
                 if f > 1.0 {
                     *i = 255;
+                } else if f < 0.0 {
+                    *i = 0;
                 } else {
                     *i = (f * 256.0) as u8;
                 }
