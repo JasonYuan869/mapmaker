@@ -5,7 +5,7 @@ const COLOR_COUNT: usize = 204;
 
 // The colors available in Minecraft maps, first colour indexed at 4
 // Indexes 0-3 are transparent.
-static COLOR_LIST: [Rgb<u8>; COLOR_COUNT] = [
+const COLOR_LIST: [Rgb<u8>; COLOR_COUNT] = [
     Rgb ( [89, 125, 39] ),
     Rgb ( [109, 153, 48] ),
     Rgb ( [127, 178, 56] ),
