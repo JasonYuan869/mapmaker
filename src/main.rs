@@ -193,45 +193,19 @@ fn generate_datapack(frames: i32, map_width: i32, map_height: i32) -> Result<(),
 
     {
         let mut init = File::create("./out/datapacks/mapmaker/data/mapmaker/functions/init.mcfunction").unwrap();
-        write!(&mut init, "tp @p -4 96 -3\n\
-                           kill @e[type=minecraft:item_frame]\n\
-                           gamerule doDaylightCycle false\n\
-                           gamerule doWeatherCycle false\n\
-                           time set day\n\
-                           scoreboard objectives add paused dummy\n\
-                           scoreboard objectives add ticker dummy\n\
-                           scoreboard objectives add ready dummy\n\
-                           scoreboard objectives add rendering dummy\n\
-                           scoreboard objectives add maps_per_frame dummy\n\
-                           scoreboard objectives add frames dummy\n\
-                           scoreboard objectives add total_maps dummy\n\
-                           scoreboard objectives add map_width dummy\n\
-                           scoreboard objectives add map_height dummy\n\
-                           scoreboard objectives add map_num dummy\n\
-                           scoreboard players set Global paused 0\n\
-                           scoreboard players set Global ticker 0\n\
-                           scoreboard players set Global ready 0\n\
-                           scoreboard players set Global rendering 0\n\
-                           scoreboard players set Global maps_per_frame {}\n\
-                           scoreboard players set Global frames {}\n\
-                           scoreboard players set Global total_maps {}\n",
+        write!(&mut init, include_str!("init_commands.in"),
                maps_per_frame, frames, frames * maps_per_frame)?;
 
         for i in 0..maps_per_frame {
-            write!(&mut init, "summon minecraft:item_frame {} {} 0 \
-            {{Facing:2b,Fixed:1b,Item:{{id:\"minecraft:filled_map\",\
-            tag:{{map:{}}},Count:1b}},Tags:[\"mapmaker\",\"{}\"]}}\n",
-                   0 - (i % map_width), 100 - (i / map_width), 0 + i, i)?;
-            write!(&mut init, "scoreboard players set @e[tag={}] map_num {}\n", i, i)?;
+            write!(&mut init, include_str!("init_summon.in"),
+                   0 - (i % map_width), 100 - (i / map_width), 0 + i, i, i, i)?;
         }
     }
     {
         let mut loop_ = File::create("out/datapacks/mapmaker/data/mapmaker/functions/loop.mcfunction").unwrap();
-        write!(&mut loop_, "scoreboard players operation @e[tag=mapmaker] map_num += Global maps_per_frame\n\
-                            scoreboard players operation @e[tag=mapmaker] map_num %= Global total_maps\n")?;
+        write!(&mut loop_, include_str!("loop_commands.in"))?;
         for i in 0..maps_per_frame {
-            write!(&mut loop_, "execute as @e[tag={}] store result storage mapmaker:id id_{} int 1 run scoreboard players get @s map_num\n\
-                                execute as @e[tag={}] run data modify entity @s Item.tag.map set from storage mapmaker:id id_{}\n",
+            write!(&mut loop_, include_str!("loop_scoreboard.in"),
                    i, i, i, i)?;
         }
     }

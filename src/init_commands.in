@@ -1,0 +1,22 @@
+tp @p -4 96 -3
+kill @e[type=minecraft:item_frame]
+gamerule doDaylightCycle false
+gamerule doWeatherCycle false
+time set day
+scoreboard objectives add paused dummy
+scoreboard objectives add ticker dummy
+scoreboard objectives add ready dummy
+scoreboard objectives add rendering dummy
+scoreboard objectives add maps_per_frame dummy
+scoreboard objectives add frames dummy
+scoreboard objectives add total_maps dummy
+scoreboard objectives add map_width dummy
+scoreboard objectives add map_height dummy
+scoreboard objectives add map_num dummy
+scoreboard players set Global paused 0
+scoreboard players set Global ticker 0
+scoreboard players set Global ready 0
+scoreboard players set Global rendering 0
+scoreboard players set Global maps_per_frame {}
+scoreboard players set Global frames {}
+scoreboard players set Global total_maps {}
