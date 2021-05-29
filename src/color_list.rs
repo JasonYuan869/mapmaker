@@ -230,7 +230,7 @@ impl RgbColorMap {
     pub fn map_indices(&self, color: &Rgb<u8>) -> (usize, [i8; 3]) {
         // Returns a tuple containing the index of the mapped color and the quantization error
         // for dithering
-        if color.0 == [0 as u8, 0, 0] {
+        if color.0 == [0_u8 , 0, 0] {
             return (119, [0, 0, 0]);
         }
 

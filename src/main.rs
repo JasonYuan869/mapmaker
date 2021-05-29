@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::{Write, Read};
 use nbt::{Blob, Map, Value, Error};
 use std::{fs, io};
-use std::path::PathBuf;
+use std::path::Path;
 
 mod color_list;
 
@@ -65,7 +65,7 @@ fn main() -> Result<(), Error> {
     Ok(())
 }
 
-fn make_nbt(path: &PathBuf, index: u32) -> Result<(u32, u32), Error> {
+fn make_nbt(path: &Path, index: u32) -> Result<(u32, u32), Error> {
     let mut source = match image::open(path) {
         Ok(image) => image,
         Err(e) => {
@@ -173,16 +173,16 @@ fn generate_dat_file(colors: &[i8], index: u32) -> Result<(), Error>{
     filename.push_str(".dat");
 
     let mut nbtfile = Blob::named("Data");
-    nbtfile.insert("scale", 1 as i8)?;
+    nbtfile.insert("scale", 1_i8)?;
     nbtfile.insert("dimension", "minecraft:overworld")?;
-    nbtfile.insert("trackingPosition", 0 as i8)?;
-    nbtfile.insert("unlimitedTracking", 0 as i8)?;
-    nbtfile.insert("xCenter", 100000 as i32)?;
-    nbtfile.insert("ZCenter", 100000 as i32)?;
+    nbtfile.insert("trackingPosition", 0_i8)?;
+    nbtfile.insert("unlimitedTracking", 0_i8)?;
+    nbtfile.insert("xCenter", 100000_i32)?;
+    nbtfile.insert("ZCenter", 100000_i32)?;
     nbtfile.insert("banners", Value::Compound(Map::new()))?;
     nbtfile.insert("frames", Value::Compound(Map::new()))?;
     nbtfile.insert("colors", colors)?;
-    nbtfile.insert("DataVersion", 1343)?;
+    nbtfile.insert("DataVersion", 1343_i32)?;
 
     let mut file = File::create(filename).unwrap();
     nbtfile.to_gzip_writer(&mut file)
@@ -198,7 +198,7 @@ fn generate_datapack(frames: i32, map_width: i32, map_height: i32) -> Result<(),
 
         for i in 0..maps_per_frame {
             write!(&mut init, include_str!("init_summon.in"),
-                   0 - (i % map_width), 100 - (i / map_width), 0 + i, i, i, i)?;
+                   0 - (i % map_width), 100 - (i / map_width), i, i, i, i)?;
         }
     }
     {
@@ -212,7 +212,7 @@ fn generate_datapack(frames: i32, map_width: i32, map_height: i32) -> Result<(),
     {
         let mut restart = File::create("out/datapacks/mapmaker/data/mapmaker/functions/restart.mcfunction").unwrap();
         for i in 0..maps_per_frame{
-            write!(&mut restart, "scoreboard players set @e[tag={}] map_num {}\n", i, i)?;
+            writeln!(&mut restart, "scoreboard players set @e[tag={}] map_num {}", i, i)?;
         }
     }
     Ok(())
