@@ -193,10 +193,10 @@ fn generate_datapack(frames: i32, map_width: i32, map_height: i32) -> Result<(),
         let mut init = File::create("./out/datapacks/mapmaker/data/mapmaker/functions/init.mcfunction").unwrap();
         write!(&mut init, "tp @p -4 96 -3\n\
                            kill @e[type=minecraft:item_frame]\n\
-                           gamerule sendCommandFeedback false\n\
                            gamerule doDaylightCycle false\n\
                            gamerule doWeatherCycle false\n\
                            time set day\n\
+                           scoreboard objectives add paused dummy\n\
                            scoreboard objectives add ticker dummy\n\
                            scoreboard objectives add ready dummy\n\
                            scoreboard objectives add rendering dummy\n\
@@ -206,6 +206,7 @@ fn generate_datapack(frames: i32, map_width: i32, map_height: i32) -> Result<(),
                            scoreboard objectives add map_width dummy\n\
                            scoreboard objectives add map_height dummy\n\
                            scoreboard objectives add map_num dummy\n\
+                           scoreboard players set Global paused 0\n\
                            scoreboard players set Global ticker 0\n\
                            scoreboard players set Global ready 0\n\
                            scoreboard players set Global rendering 0\n\
