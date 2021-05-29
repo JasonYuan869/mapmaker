@@ -140,7 +140,7 @@ fn convert_colors(image: &mut RgbImage, map: &RgbColorMap, map_width: usize) -> 
         let propagate_error = |error: [i8; 3], x: u32, y: u32, factor: f32| {
             let mut t: [u8; 3] = [0, 0, 0];
             for ((i, err), px) in t.iter_mut().zip(&error).zip(&image.get_pixel(x, y).0) {
-                let f= *px as f32 / 256.0 + *err as f32 / 256.0 * factor;
+                let f = *px as f32 / 256.0 + *err as f32 / 256.0 * factor;
                 if f > 1.0 {
                     *i = 255;
                 } else if f < 0.0 {
