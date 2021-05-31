@@ -172,17 +172,26 @@ fn generate_dat_file(colors: &[i8], index: u32) -> Result<(), Error>{
     filename.push_str(&*index.to_string());
     filename.push_str(".dat");
 
-    let mut nbtfile = Blob::named("Data");
-    nbtfile.insert("scale", 1_i8)?;
-    nbtfile.insert("dimension", "minecraft:overworld")?;
-    nbtfile.insert("trackingPosition", 0_i8)?;
-    nbtfile.insert("unlimitedTracking", 0_i8)?;
-    nbtfile.insert("xCenter", 100000_i32)?;
-    nbtfile.insert("ZCenter", 100000_i32)?;
-    nbtfile.insert("banners", Value::Compound(Map::new()))?;
-    nbtfile.insert("frames", Value::Compound(Map::new()))?;
-    nbtfile.insert("colors", colors)?;
-    nbtfile.insert("DataVersion", 2584_i32)?;
+    // Used for the inner "Data" compound
+    let mut data: Map<String, Value> = Map::new();
+    data.insert("scale".to_string(), Value::Byte(1_i8));
+    data.insert("dimension".to_string(), Value::String("minecraft:overworld".to_string()));
+    data.insert("trackingPosition".to_string(), Value::Byte(0_i8));
+    data.insert("unlimitedTracking".to_string(), Value::Byte(0_i8));
+    data.insert("xCenter".to_string(), Value::Int(100000_i32));
+    data.insert("ZCenter".to_string(), Value::Int(100000_i32));
+
+    // Two empty lists for banner and frames (markers) in the NBT file
+    data.insert("banners".to_string(), Value::Compound(Map::new()));
+    data.insert("frames".to_string(), Value::Compound(Map::new()));
+
+    // Add the slice of pixels to the NBT file
+    data.insert("colors".to_string(), Value::from(colors));
+
+    // Used for the root unnamed tag
+    let mut nbtfile = Blob::new();
+    nbtfile.insert("Data", Value::Compound(data))?;
+    nbtfile.insert("DataVersion", Value::Int(2586_i32))?;
 
     let mut file = File::create(filename).unwrap();
     nbtfile.to_gzip_writer(&mut file)
