@@ -1,5 +1,4 @@
-tp @p -4 96 -3
-kill @e[type=minecraft:item_frame]
+kill @e[type=minecraft:item_frame, tag=mapmaker]
 gamerule doDaylightCycle false
 gamerule doWeatherCycle false
 time set day
@@ -10,9 +9,8 @@ scoreboard objectives add rendering dummy
 scoreboard objectives add maps_per_frame dummy
 scoreboard objectives add frames dummy
 scoreboard objectives add total_maps dummy
-scoreboard objectives add map_width dummy
-scoreboard objectives add map_height dummy
 scoreboard objectives add map_num dummy
+scoreboard objectives add starting_index dummy
 scoreboard players set Global paused 0
 scoreboard players set Global ticker 0
 scoreboard players set Global ready 0
@@ -20,6 +18,6 @@ scoreboard players set Global rendering 0
 scoreboard players set Global maps_per_frame {}
 scoreboard players set Global frames {}
 scoreboard players set Global total_maps {}
-summon minecraft:item_frame 0 100 0 {{Facing:2b, Fixed:1b, Item:{{id:"minecraft:filled_map", tag:{{map:0}}, Count:1b}}, Tags:["mapmaker", "0"]}}
-scoreboard players set @e[tag=0] map_num 0
-
+scoreboard players set Global starting_index {}
+summon minecraft:item_frame {} {} {} {{Facing:{}b, Fixed:1b, Item:{{id:"minecraft:filled_map", tag:{{map:{}}}, Count:1b}}, Tags:["mapmaker", "{}"]}}
+scoreboard players set @e[tag={}] map_num {}

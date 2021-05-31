@@ -1,2 +1,4 @@
+scoreboard players operation @e[tag=mapmaker] map_num -= Global starting_index
 scoreboard players operation @e[tag=mapmaker] map_num += Global maps_per_frame
 scoreboard players operation @e[tag=mapmaker] map_num %= Global total_maps
+scoreboard players operation @e[tag=mapmaker] map_num += Global starting_index

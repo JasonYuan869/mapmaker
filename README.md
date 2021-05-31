@@ -10,11 +10,9 @@ An experimental program written in Rust that converts image files to a Minecraft
 - Support for PNG and JPEG files (although some PNG files seem to be incompatible for some reason)
 - Dithering to reduce color banding and simulate a greater variety of colors
 - Generates a datapack that automatically summons the item frames at a specific location and advances to the next frame for animations
-  - The location is currently locked at (0 100 0) facing north, but the ability to change this is WIP
 - Technically will work on servers, but every client must be near the map during the loading process to avoid flickering (see the last paragraph of the last section)
 
 ## Limitations
-- The maps will only generate at a specific location (currently 0 100 0) facing north
 - Long wait time to load the maps in Minecraft (see the last paragraph of the last section)
   - Takes 10x the duration of the source footage
   - Not an issue for single frame images
@@ -26,7 +24,7 @@ An experimental program written in Rust that converts image files to a Minecraft
     - About 15,000 maps with 6 GB of RAM allocated to Minecraft (variable)
 
 ## Instructions
-To use this program, first create a new superflat void world. This step is technically unnecessary but the datapack will always summon the item frames around (0 100 0).
+To use this program, first create a new superflat void world. This step is technically unnecessary, but the datapack will always summon the item frames around (0 100 0).
 
 If converting a video, use `ffmpeg` to first convert it into a series of images (read [ffmpeg manual](https://ffmpeg.org/ffmpeg.html) or ask Google).
 In both cases below, it may be easier to use symlinks instead of copying files to/from the program folder, especially if the source is long or the quality is high.
@@ -35,16 +33,18 @@ In both cases below, it may be easier to use symlinks instead of copying files t
 1. Download the .zip file from the releases page and unzip.
 2. Place the sources images in `in`.
 3. Run `mapmaker.exe`.
-4. Copy/move all files in `out` to the base of your world save.
-5. Open the world in Minecraft.
+4. Follow the instructions to set the direction, upper left corner coordinate, and starting map ID of the generated maps.
+5. Copy/move all files in `out` to the base of your world save.
+6. Open the world in Minecraft.
 
 ### Building from source
 Prerequisites: `rust`, `cargo` (follow instructions [here](https://www.rust-lang.org/learn/get-started))
 1. Clone this repo.
 2. Place the sources images in `in`.
 3. Run `cargo run --release` to build the program in release mode (significantly faster).
-4. Copy/move all files in `out` to the base of your world save.
-5. Open the world in Minecraft.
+4. Follow the instructions to set the direction, upper left corner coordinate, and starting map ID of the generated maps.
+5. Copy/move all files in `out` to the base of your world save.
+6. Open the world in Minecraft.
 
 ## How it Works
 ### Map NBT structure
@@ -55,12 +55,12 @@ summon minecraft:item_frame ~ ~ ~ {Facing: <Direction_Byte>, Item: {id: "minecra
 ```
 Every `map_<ID>.dat` file contains an array of bytes with length 16384 representing the color of each pixel on the 128-by-128 map. Index 0 represents the top left corner of the map, and increasing the index will increase the horizontal offset, then the vertical.
 
-There are 59 base colors available in Minecraft 1.16, however each base color is actually associated with four separate map colors of varying lightness making a total of 236 colors (232 excluding the four transparant colors).
+There are 59 base colors available in Minecraft 1.16, however each base color is actually associated with four separate map colors of varying lightness making a total of 236 colors (232 excluding the four transparent colors).
 The 208 colors are each associated with a color ID, which is the byte that is entered into the map's NBT file. In this program, I hardcoded the list of colors from the [Minecraft Wiki](https://minecraft.fandom.com/wiki/Map_item_format#Full_color_tables) into an array of RGB values found in `color_list.rs`. The `Rgb<u8>` struct comes from the [image crate](https://docs.rs/crate/image).
 
 ### Color conversion
-Also in `color_list.rs`, there is a struct called `RgbColorMap` which takes an array of `Rgb<u8>` as its `colors` field to represent the array of availbe colors.
-One function is implemented for this struct called `map_indices(&self, color: &Rgb<u8>)`. It takes a single parameter representing an RGB color, which is then processed to find the closest equivalent color in `colors`. It does this by iterating through `colors` and computing the sum of squared differences (Euclidean distace formula) of each RGB channel, then returning the index of the color with the lowest distance score. An array representing the error between the source color and the resulting color is also computed and returned in this function, to be used for dithering. The last thing in this file is a public static variable `MINECRAFT_COLOR_MAP`, which is an `RgbColorMap` with the array of Minecraft colors as its field.
+Also in `color_list.rs`, there is a struct called `RgbColorMap` which takes an array of `Rgb<u8>` as its `colors` field to represent the array of available colors.
+One function is implemented for this struct called `map_indices(&self, color: &Rgb<u8>)`. It takes a single parameter representing an RGB color, which is then processed to find the closest equivalent color in `colors`. It does this by iterating through `colors` and computing the sum of squared differences (Euclidean distance formula) of each RGB channel, then returning the index of the color with the lowest distance score. An array representing the error between the source color and the resulting color is also computed and returned in this function, to be used for dithering. The last thing in this file is a public static variable `MINECRAFT_COLOR_MAP`, which is an `RgbColorMap` with the array of Minecraft colors as its field.
 
 When an input image is opened by the program, it is first resized to a multiple of 128 pixels on both dimensions so it fits perfectly on a whole number of maps. The borders of the resized image (if any) are colored black. The image crate stores images in memory as a container of pixels, similar to a vector, indexed starting from the top left going horizontally. The image is converted to a vector of color indices by iterating through every pixel and calling `map_indices(pixel_color)` of `MINECRAFT_COLOR_MAP`. The error of each pixel is propagated to neighboring pixels following the [Floyd-Steinberg dithering algorithm](https://en.wikipedia.org/wiki/Floyd%E2%80%93Steinberg_dithering), which is used to reduce color banding. This process is repeated for every input image in the folder.
 
@@ -82,7 +82,7 @@ scoreboard players set @e[tag=1] map_num 1
 # Repeat for every item frame...
 ```
 
-In `loop.mcfunction`, every item frame will have its map ID incremented by the number of maps per frame modulo total frames to show the next frame and loop from the start when finished. This is acheived using the `/data` command, which provides an interface between scoreboard variables and NBT data.
+In `loop.mcfunction`, every item frame will have its map ID incremented by the number of maps per frame modulo total frames to show the next frame and loop from the start when finished. This is achieved using the `/data` command, which provides an interface between scoreboard variables and NBT data.
 ```mcfunction
 scoreboard players operation @e[tag=mapmaker] map_num += Global maps_per_frame
 scoreboard players operation @e[tag=mapmaker] map_num %= Global total_maps
