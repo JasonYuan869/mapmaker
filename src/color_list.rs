@@ -1,7 +1,7 @@
 use image::Rgb;
 
 // The number of colors that Minecraft supports
-const COLOR_COUNT: usize = 204;
+const COLOR_COUNT: usize = 232;
 
 // The colors available in Minecraft maps, first colour indexed at 4
 // Indexes 0-3 are transparent.
@@ -210,6 +210,34 @@ const COLOR_LIST: [Rgb<u8>; COLOR_COUNT] = [
     Rgb ( [31, 18, 13] ),
     Rgb ( [37, 22, 16] ),
     Rgb ( [19, 11, 8] ),
+    Rgb( [133, 33, 34] ),
+    Rgb( [163, 41, 42] ),
+    Rgb( [189, 48, 49] ),
+    Rgb( [100, 25, 25] ),
+    Rgb( [104, 44, 68] ),
+    Rgb( [127, 54, 83] ),
+    Rgb( [148, 63, 97] ),
+    Rgb( [78, 33, 51] ),
+    Rgb( [64, 17, 20] ),
+    Rgb( [79, 21, 25] ),
+    Rgb( [92, 25, 29] ),
+    Rgb( [48, 13, 15] ),
+    Rgb( [15, 88, 94] ),
+    Rgb( [18, 108, 115] ),
+    Rgb( [22, 126, 134] ),
+    Rgb( [11, 66, 70] ),
+    Rgb( [40, 100, 98] ),
+    Rgb( [50, 122, 120] ),
+    Rgb( [58, 142, 140] ),
+    Rgb( [30, 75, 74] ),
+    Rgb( [60, 31, 43] ),
+    Rgb( [74, 37, 53] ),
+    Rgb( [86, 44, 62] ),
+    Rgb( [45, 23, 32] ),
+    Rgb( [14, 127, 93] ),
+    Rgb( [17, 155, 114] ),
+    Rgb( [20, 180, 133] ),
+    Rgb( [10, 95, 70] ),
 ];
 
 pub struct RgbColorMap {
