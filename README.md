@@ -18,7 +18,7 @@ An experimental program written in Rust that converts image files to a Minecraft
 - Long wait time to load the maps in Minecraft (see the last paragraph of the last section)
   - Takes 10x the duration of the source footage
   - Not an issue for single frame images
-- Limited color scheme (204 visible colors only, down from ~16 million)
+- Limited color scheme (232 visible colors only, down from ~16 million)
   - Somewhat compensated by dithering
 - Very resource intensive
   - Causes server side lag (even in singleplayer) as the garbage collector attempts to save memory
@@ -55,7 +55,7 @@ summon minecraft:item_frame ~ ~ ~ {Facing: <Direction_Byte>, Item: {id: "minecra
 ```
 Every `map_<ID>.dat` file contains an array of bytes with length 16384 representing the color of each pixel on the 128-by-128 map. Index 0 represents the top left corner of the map, and increasing the index will increase the horizontal offset, then the vertical.
 
-There are 59 base colors available in Minecraft 1.16, however each base color is actually associated with four separate map colors of varying lightness making a total of 208 colors (204 excluding the four transparant colors).
+There are 59 base colors available in Minecraft 1.16, however each base color is actually associated with four separate map colors of varying lightness making a total of 236 colors (232 excluding the four transparant colors).
 The 208 colors are each associated with a color ID, which is the byte that is entered into the map's NBT file. In this program, I hardcoded the list of colors from the [Minecraft Wiki](https://minecraft.fandom.com/wiki/Map_item_format#Full_color_tables) into an array of RGB values found in `color_list.rs`. The `Rgb<u8>` struct comes from the [image crate](https://docs.rs/crate/image).
 
 ### Color conversion
