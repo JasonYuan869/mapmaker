@@ -15,16 +15,17 @@ fn ceil_div(dividend: u32, divisor: u32) -> u32 {
     (dividend + divisor - 1) / divisor
 }
 
-fn pause() {
+fn pause() -> Result<(), Error> {
     let mut stdin = io::stdin();
     let mut stdout = io::stdout();
 
     // We want the cursor to stay at the end of the line, so we print without a newline and flush manually.
-    write!(stdout, "Press enter to continue...").unwrap();
-    stdout.flush().unwrap();
+    write!(stdout, "Press enter to continue...")?;
+    stdout.flush()?;
 
     // Read a single byte and discard
-    let _ = stdin.read(&mut [0u8]).unwrap();
+    let _ = stdin.read(&mut [0u8])?;
+    Ok(())
 }
 
 fn main() -> Result<(), Error> {
@@ -61,7 +62,7 @@ fn main() -> Result<(), Error> {
             exit(-1);
         }
     };
-    pause();
+    pause()?;
     Ok(())
 }
 
