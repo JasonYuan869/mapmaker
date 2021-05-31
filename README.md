@@ -11,11 +11,11 @@ An experimental program written in Rust that converts image files to a Minecraft
 - Dithering to reduce color banding and simulate a greater variety of colors
 - Generates a datapack that automatically summons the item frames at a specific location and advances to the next frame for animations
   - The location is currently locked at (0 100 0) facing north, but the ability to change this is WIP
-- Technically will work on servers, but every client must be near the map during the loading process to avoid flickering (see the last paragraph of the next section)
+- Technically will work on servers, but every client must be near the map during the loading process to avoid flickering (see the last paragraph of the last section)
 
 ## Limitations
 - The maps will only generate at a specific location (currently 0 100 0) facing north
-- Long wait time to load the maps in Minecraft (see the last paragraph of the next section)
+- Long wait time to load the maps in Minecraft (see the last paragraph of the last section)
   - Takes 10x the duration of the source footage
   - Not an issue for single frame images
 - Limited color scheme (204 visible colors only, down from ~16 million)
