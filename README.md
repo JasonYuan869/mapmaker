@@ -1,9 +1,9 @@
 # mapmaker
 An experimental program written in Rust that converts image files to a Minecraft-compatible map format. When provided with a series of image files with the same dimensions, it outputs a datapack that allows the sequence to be animated at 20 frames per second (with some limitations).
 
-854x480 image | Zoomed in
----|---
-<img src="https://user-images.githubusercontent.com/18143408/120136896-33ed0980-c1a1-11eb-8eb8-7eb7d8fa797d.png"> | <img src="https://user-images.githubusercontent.com/18143408/120136915-3e0f0800-c1a1-11eb-8086-1ebd77461b55.png">
+854x480 Source | Minecraft Maps | Zoomed
+---|---|---
+<img src="https://user-images.githubusercontent.com/18143408/120138357-52a0cf80-c1a4-11eb-85df-f51ad46ab42e.jpg"> | <img src="https://user-images.githubusercontent.com/18143408/120136896-33ed0980-c1a1-11eb-8eb8-7eb7d8fa797d.png"> | <img src="https://user-images.githubusercontent.com/18143408/120136915-3e0f0800-c1a1-11eb-8086-1ebd77461b55.png">
 
 ## Features
 - Support for any dimension of source image (the program will add maps to fit the dimensions as necessary)
