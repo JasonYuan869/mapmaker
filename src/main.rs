@@ -182,7 +182,7 @@ fn generate_dat_file(colors: &[i8], index: u32) -> Result<(), Error>{
     nbtfile.insert("banners", Value::Compound(Map::new()))?;
     nbtfile.insert("frames", Value::Compound(Map::new()))?;
     nbtfile.insert("colors", colors)?;
-    nbtfile.insert("DataVersion", 1343_i32)?;
+    nbtfile.insert("DataVersion", 2584_i32)?;
 
     let mut file = File::create(filename).unwrap();
     nbtfile.to_gzip_writer(&mut file)
@@ -196,9 +196,9 @@ fn generate_datapack(frames: i32, map_width: i32, map_height: i32) -> Result<(),
         write!(&mut init, include_str!("init_commands.in"),
                maps_per_frame, frames, frames * maps_per_frame)?;
 
-        for i in 0..maps_per_frame {
+        for i in 1..maps_per_frame {
             write!(&mut init, include_str!("init_summon.in"),
-                   0 - (i % map_width), 100 - (i / map_width), i, i, i, i)?;
+                   0 - (i % map_width), 0 - (i / map_width), i, i, i, i)?;
         }
     }
     {

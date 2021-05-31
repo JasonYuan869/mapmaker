@@ -1,2 +1,2 @@
-summon minecraft:item_frame {} {} 0 {{Facing:2b, Fixed:1b, Item:{{id:"minecraft:filled_map", tag:{{map:{}}}, Count:1b}}, Tags:["mapmaker", "{}"]}}
+execute as @e[tag=0] at @s run summon minecraft:item_frame ~{} ~{} ~ {{Facing:2b, Fixed:1b, Item:{{id:"minecraft:filled_map", tag:{{map:{}}}, Count:1b}}, Tags:["mapmaker", "{}"]}}
 scoreboard players set @e[tag={}] map_num {}

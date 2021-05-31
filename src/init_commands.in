@@ -20,3 +20,6 @@ scoreboard players set Global rendering 0
 scoreboard players set Global maps_per_frame {}
 scoreboard players set Global frames {}
 scoreboard players set Global total_maps {}
+summon minecraft:item_frame 0 100 0 {{Facing:2b, Fixed:1b, Item:{{id:"minecraft:filled_map", tag:{{map:0}}, Count:1b}}, Tags:["mapmaker", "{}"]}}
+scoreboard players set @e[tag=0] map_num 0
+
