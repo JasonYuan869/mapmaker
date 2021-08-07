@@ -1,12 +1,12 @@
-use image::imageops::{overlay};
-use image::{RgbImage, Rgb};
-use std::process::exit;
-use crate::color_list::{MINECRAFT_COLOR_MAP, RgbColorMap};
+use crate::color_list::{RgbColorMap, MINECRAFT_COLOR_MAP};
+use image::imageops::overlay;
+use image::{Rgb, RgbImage};
+use nbt::{Blob, Error, Map, Value};
 use std::fs::File;
-use std::io::{Write, Read, BufRead};
-use nbt::{Blob, Map, Value, Error};
-use std::{fs, io};
+use std::io::{BufRead, Read, Write};
 use std::path::Path;
+use std::process::exit;
+use std::{fs, io};
 
 mod color_list;
 
@@ -15,7 +15,7 @@ fn ceil_div(dividend: u32, divisor: u32) -> u32 {
     (dividend + divisor - 1) / divisor
 }
 
-fn pause()  {
+fn pause() {
     let mut stdin = io::stdin();
     let mut stdout = io::stdout();
 
@@ -67,8 +67,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         location = [x, y, z];
 
-        println!("Enter the item frame facing direction as follows:\n\
-                  \tNorth = 2, East = 5, South = 3, West = 4");
+        println!(
+            "Enter the item frame facing direction as follows:\n\
+                  \tNorth = 2, East = 5, South = 3, West = 4"
+        );
         print!("Facing (default 2): ");
         stdout.flush()?;
         facing = match lines.next().expect("Failed to read line.") {
@@ -101,14 +103,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut entries = fs::read_dir("./in")?
         .map(|res| res.map(|e| e.path()))
-        .collect::<Result<Vec<_>, io::Error>>().unwrap();
+        .collect::<Result<Vec<_>, io::Error>>()
+        .unwrap();
 
     let mut index = starting_index;
 
     entries.sort();
     let mut out: (u32, u32) = (0, 0);
     for file in &entries {
-        if file.extension().unwrap() == "jpg" || file.extension().unwrap() == "jpeg" || file.extension().unwrap() == "png" {
+        if file.extension().unwrap() == "jpg"
+            || file.extension().unwrap() == "jpeg"
+            || file.extension().unwrap() == "png"
+        {
             print!("Processing image {}... ", index + 1 - starting_index);
             io::stdout().flush()?;
             out = make_nbt(file, (index - starting_index) as u32, starting_index as u32)?;
@@ -121,7 +127,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let map_height = out.1;
 
     println!("Generating datapack");
-    match generate_datapack(starting_index,index - starting_index, map_width as i32, map_height as i32, location, facing) {
+    match generate_datapack(
+        starting_index,
+        index - starting_index,
+        map_width as i32,
+        map_height as i32,
+        location,
+        facing,
+    ) {
         Ok(_) => println!("All done!"),
         Err(e) => {
             println!("Error writing datapack.");
@@ -134,7 +147,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn make_nbt(path: &Path, index: u32, starting_index: u32) -> Result<(u32, u32), Box<dyn std::error::Error>> {
+fn make_nbt(
+    path: &Path,
+    index: u32,
+    starting_index: u32,
+) -> Result<(u32, u32), Box<dyn std::error::Error>> {
     let mut source = match image::open(path) {
         Ok(image) => image,
         Err(e) => {
@@ -142,7 +159,7 @@ fn make_nbt(path: &Path, index: u32, starting_index: u32) -> Result<(u32, u32), 
             println!("{}", e);
             pause();
             exit(-1);
-        },
+        }
     };
 
     let im = match source.as_mut_rgb8() {
@@ -163,19 +180,23 @@ fn make_nbt(path: &Path, index: u32, starting_index: u32) -> Result<(u32, u32), 
     let mut resized: RgbImage = RgbImage::new(map_width_pixels, map_height_pixels);
 
     // Resize the image buffer to fit a multiple of 128 by 128 pixels
-    overlay(&mut resized, im,
-            (map_width_pixels - width) / 2,
-            (map_height_pixels - height) / 2);
+    overlay(
+        &mut resized,
+        im,
+        (map_width_pixels - width) / 2,
+        (map_height_pixels - height) / 2,
+    );
 
-    let pixel_array = convert_colors(&mut resized,
-                                     &MINECRAFT_COLOR_MAP,
-                                     map_width as usize);
+    let pixel_array = convert_colors(&mut resized, &MINECRAFT_COLOR_MAP, map_width as usize);
 
     for i in 0..map_count {
         let start: usize = ((i % map_width) * 16384 + // H_Map
             (i / map_width) * (16384 * map_width)) as usize; // V_Map
 
-        match generate_dat_file(&pixel_array[start..start + 16384], index * map_count + i + starting_index) {
+        match generate_dat_file(
+            &pixel_array[start..start + 16384],
+            index * map_count + i + starting_index,
+        ) {
             Ok(_) => (),
             Err(e) => {
                 println!("Error writing NBT data.");
@@ -201,11 +222,11 @@ fn convert_colors(image: &mut RgbImage, map: &RgbColorMap, map_width: usize) -> 
         let output = map.map_indices(pixel);
         let idx = output.0 as u8;
         // println!("{}", idx);
-        indices[i % 128 +
-            (i / (128 * map_width)) % 128 * 128 +
-            (i / 128) % map_width * 16384 +
-            i - (i % (16384*map_width))
-            ] = idx as i8;
+        indices[i % 128
+            + (i / (128 * map_width)) % 128 * 128
+            + (i / 128) % map_width * 16384
+            + i
+            - (i % (16384 * map_width))] = idx as i8;
 
         // Propagate error for dithering
         let propagate_error = |error: [i8; 3], x: u32, y: u32, factor: f32| {
@@ -223,12 +244,13 @@ fn convert_colors(image: &mut RgbImage, map: &RgbColorMap, map_width: usize) -> 
             Rgb(t)
         };
 
-        if x > 1 && x < image.width() - 1 &&
-            y < image.height() - 1 && output.1 != [0, 0, 0] {
-            let dithering_array = [propagate_error(output.1, x + 1, y, 0.4375),
+        if x > 1 && x < image.width() - 1 && y < image.height() - 1 && output.1 != [0, 0, 0] {
+            let dithering_array = [
+                propagate_error(output.1, x + 1, y, 0.4375),
                 propagate_error(output.1, x - 1, y + 1, 0.1875),
                 propagate_error(output.1, x, y + 1, 0.3125),
-                propagate_error(output.1, x + 1, y + 1, 0.0625)];
+                propagate_error(output.1, x + 1, y + 1, 0.0625),
+            ];
             image.put_pixel(x + 1, y, dithering_array[0]);
             image.put_pixel(x - 1, y + 1, dithering_array[1]);
             image.put_pixel(x, y + 1, dithering_array[2]);
@@ -238,7 +260,7 @@ fn convert_colors(image: &mut RgbImage, map: &RgbColorMap, map_width: usize) -> 
     indices
 }
 
-fn generate_dat_file(colors: &[i8], index: u32) -> Result<(), Error>{
+fn generate_dat_file(colors: &[i8], index: u32) -> Result<(), Error> {
     let mut filename = "out/data/map_".to_owned();
     filename.push_str(&*index.to_string());
     filename.push_str(".dat");
@@ -246,7 +268,10 @@ fn generate_dat_file(colors: &[i8], index: u32) -> Result<(), Error>{
     // Used for the inner "Data" compound
     let mut data: Map<String, Value> = Map::new();
     data.insert("scale".to_string(), Value::Byte(1_i8));
-    data.insert("dimension".to_string(), Value::String("minecraft:overworld".to_string()));
+    data.insert(
+        "dimension".to_string(),
+        Value::String("minecraft:overworld".to_string()),
+    );
     data.insert("trackingPosition".to_string(), Value::Byte(0_i8));
     data.insert("locked".to_string(), Value::Byte(1_i8));
     data.insert("unlimitedTracking".to_string(), Value::Byte(0_i8));
@@ -273,69 +298,148 @@ fn generate_dat_file(colors: &[i8], index: u32) -> Result<(), Error>{
     nbtfile.to_gzip_writer(&mut file)
 }
 
-fn generate_datapack(starting_index: i32, frames: i32, map_width: i32, map_height: i32, location: [i64; 3], facing: i8) -> Result<(), Box<dyn std::error::Error>> {
+fn generate_datapack(
+    starting_index: i32,
+    frames: i32,
+    map_width: i32,
+    map_height: i32,
+    location: [i64; 3],
+    facing: i8,
+) -> Result<(), Box<dyn std::error::Error>> {
     let maps_per_frame = map_width * map_height;
 
     {
-        let mut init = File::create("./out/datapacks/mapmaker/data/mapmaker/functions/init.mcfunction").unwrap();
-        write!(&mut init, include_str!("init_commands.in"),
-               maps_per_frame, frames, frames * maps_per_frame, starting_index, location[0], location[1], location[2], facing,
-               starting_index, starting_index, starting_index, starting_index)?;
+        let mut init =
+            File::create("./out/datapacks/mapmaker/data/mapmaker/functions/init.mcfunction")
+                .unwrap();
+        write!(
+            &mut init,
+            include_str!("init_commands.in"),
+            maps_per_frame,
+            frames,
+            frames * maps_per_frame,
+            starting_index,
+            location[0],
+            location[1],
+            location[2],
+            facing,
+            starting_index,
+            starting_index,
+            starting_index,
+            starting_index
+        )?;
 
         match facing {
-            3 => { // South
+            3 => {
+                // South
                 for i in starting_index + 1..starting_index + maps_per_frame {
                     let x = (i - starting_index) % map_width;
                     let z = 0;
-                    write!(&mut init, include_str!("init_summon.in"),
-                           starting_index, x, 0 - ((i - starting_index) / map_width), z, facing, i, i, i, i)?;
+                    write!(
+                        &mut init,
+                        include_str!("init_summon.in"),
+                        starting_index,
+                        x,
+                        0 - ((i - starting_index) / map_width),
+                        z,
+                        facing,
+                        i,
+                        i,
+                        i,
+                        i
+                    )?;
                 }
-            },
-            4 => { // West
+            }
+            4 => {
+                // West
                 for i in starting_index + 1..starting_index + maps_per_frame {
                     let x = 0;
                     let z = (i - starting_index) % map_width;
-                    write!(&mut init, include_str!("init_summon.in"),
-                           starting_index, x, 0 - ((i - starting_index) / map_width), z, facing, i, i, i, i)?;
+                    write!(
+                        &mut init,
+                        include_str!("init_summon.in"),
+                        starting_index,
+                        x,
+                        0 - ((i - starting_index) / map_width),
+                        z,
+                        facing,
+                        i,
+                        i,
+                        i,
+                        i
+                    )?;
                 }
-            },
-            5 => { // East
+            }
+            5 => {
+                // East
                 for i in starting_index + 1..starting_index + maps_per_frame {
                     let x = 0;
                     let z = 0 - ((i - starting_index) % map_width);
-                    write!(&mut init, include_str!("init_summon.in"),
-                           starting_index, x, 0 - ((i - starting_index) / map_width), z, facing, i, i, i, i)?;
+                    write!(
+                        &mut init,
+                        include_str!("init_summon.in"),
+                        starting_index,
+                        x,
+                        0 - ((i - starting_index) / map_width),
+                        z,
+                        facing,
+                        i,
+                        i,
+                        i,
+                        i
+                    )?;
                 }
-            },
-            _ => { // 2 is default (North)
+            }
+            _ => {
+                // 2 is default (North)
                 for i in starting_index + 1..starting_index + maps_per_frame {
                     let x = 0 - ((i - starting_index) % map_width);
                     let z = 0;
-                    write!(&mut init, include_str!("init_summon.in"),
-                           starting_index, x, 0 - ((i - starting_index) / map_width), z, facing, i, i, i, i)?;
+                    write!(
+                        &mut init,
+                        include_str!("init_summon.in"),
+                        starting_index,
+                        x,
+                        0 - ((i - starting_index) / map_width),
+                        z,
+                        facing,
+                        i,
+                        i,
+                        i,
+                        i
+                    )?;
                 }
-            },
+            }
         }
     }
     {
-        let mut loop_ = File::create("out/datapacks/mapmaker/data/mapmaker/functions/loop.mcfunction").unwrap();
+        let mut loop_ =
+            File::create("out/datapacks/mapmaker/data/mapmaker/functions/loop.mcfunction").unwrap();
         write!(&mut loop_, include_str!("loop_commands.in"))?;
         for i in starting_index..starting_index + maps_per_frame {
-            write!(&mut loop_, include_str!("loop_scoreboard.in"),
-                   i, i, i, i)?;
+            write!(&mut loop_, include_str!("loop_scoreboard.in"), i, i, i, i)?;
         }
     }
     {
-        let mut restart = File::create("out/datapacks/mapmaker/data/mapmaker/functions/restart.mcfunction").unwrap();
+        let mut restart =
+            File::create("out/datapacks/mapmaker/data/mapmaker/functions/restart.mcfunction")
+                .unwrap();
         for i in starting_index..starting_index + maps_per_frame {
-            writeln!(&mut restart, "scoreboard players set @e[tag={}] map_num {}", i, i)?;
+            writeln!(
+                &mut restart,
+                "scoreboard players set @e[tag={}] map_num {}",
+                i, i
+            )?;
         }
     }
     {
         // Write ID Counts file to prevent new maps from overwriting the generated ones
         let mut idcounts = File::create("out/data/idcounts.dat").unwrap();
         let mut idcounts_data: Map<String, Value> = Map::new();
-        idcounts_data.insert("map".to_string(), Value::Int((starting_index + frames * maps_per_frame) as i32));
+        idcounts_data.insert(
+            "map".to_string(),
+            Value::Int((starting_index + frames * maps_per_frame) as i32),
+        );
         let mut idcounts_file = Blob::new();
         idcounts_file.insert("data", Value::Compound(idcounts_data))?;
         idcounts_file.insert("DataVersion", Value::Int(2586_i32))?;
