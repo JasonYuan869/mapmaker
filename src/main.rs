@@ -1,12 +1,8 @@
 use image::imageops::{overlay};
 use image::{RgbImage, Rgb};
-use std::process::exit;
 use crate::color_list::{MINECRAFT_COLOR_MAP, RgbColorMap};
-use std::fs::File;
-use std::io::{Write, Read, BufRead};
 use nbt::{Blob, Map, Value, Error};
-use std::{fs, io};
-use std::path::Path;
+use std::{str::FromStr, path::{Path, PathBuf}, fs::{File, self}, io::{Write, self}, env};
 
 mod color_list;
 
@@ -15,106 +11,91 @@ fn ceil_div(dividend: u32, divisor: u32) -> u32 {
     (dividend + divisor - 1) / divisor
 }
 
-fn pause()  {
-    let mut stdin = io::stdin();
-    let mut stdout = io::stdout();
-
-    // We want the cursor to stay at the end of the line, so we print without a newline and flush manually.
-    write!(stdout, "Press enter to continue...").unwrap();
-    stdout.flush().unwrap();
-
-    // Read a single byte and discard
-    let _ = stdin.read(&mut [0u8]).unwrap();
-}
-
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let location: [i64; 3];
-    let facing: i8;
-    let starting_index: i32;
-    // Setup scope for Stdin locking
-    {
-        let stdin = io::stdin();
-        let mut lines = stdin.lock().lines();
-        let mut stdout = io::stdout();
-        println!("Enter the target x, y, z coordinates of the upper left corner item frame.");
-        print!("X (default 0): ");
-        stdout.flush()?;
-        let x: i64 = match lines.next().expect("Failed to read line.") {
-            Ok(i) => match i.parse::<i64>() {
-                Ok(i) => i,
-                _ => 0,
-            },
-            _ => 0,
-        };
-        print!("Y (default 100): ");
-        stdout.flush()?;
-        let y: i64 = match lines.next().expect("Failed to read line.") {
-            Ok(i) => match i.parse::<i64>() {
-                Ok(i) => i,
-                _ => 100,
-            },
-            _ => 100,
-        };
-        print!("Z (default 0): ");
-        stdout.flush()?;
-        let z: i64 = match lines.next().expect("Failed to read line.") {
-            Ok(i) => match i.parse::<i64>() {
-                Ok(i) => i,
-                _ => 0,
-            },
-            _ => 0,
-        };
+    const DIRECTION_NORTH: i8 = 2;
+    const DIRECTION_EAST: i8 = 5;
+    const DIRECTION_SOUTH: i8 = 3;
+    const DIRECTION_WEST: i8 = 4;
+    // let threads = num_cpus::get();
 
-        location = [x, y, z];
+    let args: Vec<String> = env::args().collect();
 
-        println!("Enter the item frame facing direction as follows:\n\
-                  \tNorth = 2, East = 5, South = 3, West = 4");
-        print!("Facing (default 2): ");
-        stdout.flush()?;
-        facing = match lines.next().expect("Failed to read line.") {
-            Ok(i) => match i.parse::<i8>() {
-                Ok(i) => i,
-                _ => 2,
-            },
-            _ => 2,
-        };
-        if !(2..=5).contains(&facing) {
-            println!("Invalid facing value.");
-            pause();
-            exit(-1);
-        }
-        println!("Which map index should the .dat files start at?");
-        print!("Index (default 0): ");
-        stdout.flush()?;
-        starting_index = match lines.next().expect("Failed to read line.") {
-            Ok(i) => match i.parse::<i32>() {
-                Ok(i) => i,
-                _ => 0,
-            },
-            _ => 0,
-        };
+    if args.len() != 6 {
+        eprintln!("Usage: {} <X <Y> <Z> <Facing Direction> <Starting Index>", args[0]);
+        eprintln!("Example: {} 0 100 0 east 2", args[0]);
+        std::process::exit(1);
     }
 
+    let location: [i64; 3] = match (i64::from_str(&args[1]),
+                                    i64::from_str(&args[2]),
+                                    i64::from_str(&args[3])) {
+        (Ok(x), Ok(y), Ok(z)) => [x, y, z],
+        _ => {
+            eprintln!("Invalid coordinates. Ensure that they are all integer values.");
+            std::process::exit(1);
+        }
+    };
+
+    let facing: i8 = match args[4].to_lowercase().as_str() {
+        "north" => DIRECTION_NORTH,
+        "east" => DIRECTION_EAST,
+        "south" => DIRECTION_SOUTH,
+        "west" => DIRECTION_WEST,
+        _ => {
+            eprintln!("Invalid direction. \
+            Valid values are: north, east, south, west.");
+            std::process::exit(1);
+        }
+    };
+
+    let starting_index: i32 = match i32::from_str(&args[5]) {
+        Ok(i) => i,
+        _ => {
+            eprintln!("Invalid index. \
+            Enter the starting map index that the program should begin with.");
+            std::process::exit(1);
+        }
+    };
+
+
     // Clear existing .dat files
-    fs::remove_dir_all("./out/data")?;
+    if Path::new("./out/data").exists() {
+        fs::remove_dir_all("./out/data")?;
+    }
     fs::create_dir("./out/data")?;
 
     let mut entries = fs::read_dir("./in")?
-        .map(|res| res.map(|e| e.path()))
-        .collect::<Result<Vec<_>, io::Error>>().unwrap();
+        .filter_map(|entry| {
+            match entry {
+                Ok(entry) => {
+                    match entry.path().extension() {
+                        Some(ext) => match ext.to_str() {
+                            Some("jpg") | Some("jpeg") | Some("png") => Some(entry.path()),
+                            _ => None,
+                        },
+                        _ => None,
+                    }
+                },
+                _ => None,
+            }
+        })
+        .collect::<Vec<PathBuf>>();
+
+    if entries.len() == 0 {
+        eprintln!("There are no valid files in the in/ directory. \
+        Valid files are jpg, jpeg, and png.");
+        std::process::exit(1);
+    }
 
     let mut index = starting_index;
-
-    entries.sort();
+    entries.sort_unstable();
     let mut out: (u32, u32) = (0, 0);
     for file in &entries {
-        if file.extension().unwrap() == "jpg" || file.extension().unwrap() == "jpeg" || file.extension().unwrap() == "png" {
-            print!("Processing image {}... ", index + 1 - starting_index);
-            io::stdout().flush()?;
-            out = make_nbt(file, (index - starting_index) as u32, starting_index as u32)?;
-            index += 1;
-            println!("Done.")
-        }
+        print!("Processing image {}... ", index + 1 - starting_index);
+        io::stdout().flush()?;
+        out = make_nbt(file, (index - starting_index) as u32, starting_index as u32)?;
+        index += 1;
+        println!("Done.")
     }
 
     let map_width = out.0;
@@ -126,11 +107,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => {
             println!("Error writing datapack.");
             println!("{}", e);
-            pause();
-            exit(-1);
+            std::process::exit(1);
         }
     };
-    pause();
     Ok(())
 }
 
@@ -138,18 +117,17 @@ fn make_nbt(path: &Path, index: u32, starting_index: u32) -> Result<(u32, u32), 
     let mut source = match image::open(path) {
         Ok(image) => image,
         Err(e) => {
-            println!("The source path does not exist, or is not an image.");
-            println!("{}", e);
-            pause();
-            exit(-1);
+            eprintln!("The source path does not exist, or is not an image.");
+            eprintln!("{}", e);
+            std::process::exit(1);
         },
     };
 
     let im = match source.as_mut_rgb8() {
         Some(i) => i,
         None => {
-            println!("There was an issue reading the image. Try converting to a JPG.");
-            exit(-1);
+            eprintln!("There was an issue reading the image. Try converting to a JPG.");
+            std::process::exit(1);
         }
     };
     let width = im.width();
@@ -180,8 +158,7 @@ fn make_nbt(path: &Path, index: u32, starting_index: u32) -> Result<(u32, u32), 
             Err(e) => {
                 println!("Error writing NBT data.");
                 println!("{}", e);
-                pause();
-                exit(-1);
+                std::process::exit(1)
             }
         }
     }
