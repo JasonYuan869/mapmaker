@@ -1,7 +1,7 @@
 use crate::color_list::{RgbColorMap, MINECRAFT_COLOR_MAP};
-use image::imageops::overlay;
-use image::{Rgb, RgbImage};
+use image::{imageops::overlay, Rgb, RgbImage};
 use nbt::{Blob, Error, Map, Value};
+use num;
 use std::{
     env,
     fs::{self, File},
@@ -9,13 +9,9 @@ use std::{
     path::{Path, PathBuf},
     str::FromStr,
 };
+use num::Integer;
 
 mod color_list;
-
-#[inline(always)]
-fn ceil_div(dividend: u32, divisor: u32) -> u32 {
-    (dividend + divisor - 1) / divisor
-}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     const DIRECTION_NORTH: i8 = 2;
@@ -32,6 +28,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             args[0]
         );
         eprintln!("Example: {} 0 100 0 east 2", args[0]);
+        eprintln!("Example: {} 0 100 0 +x 2", args[0]);
         std::process::exit(1);
     }
 
@@ -49,9 +46,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let facing: i8 = match args[4].to_lowercase().as_str() {
         "north" => DIRECTION_NORTH,
+        "-z" => DIRECTION_NORTH,
         "east" => DIRECTION_EAST,
+        "+x" => DIRECTION_EAST,
         "south" => DIRECTION_SOUTH,
+        "+z" => DIRECTION_SOUTH,
         "west" => DIRECTION_WEST,
+        "-x" => DIRECTION_WEST,
         _ => {
             eprintln!(
                 "Invalid direction. \
@@ -155,9 +156,9 @@ fn make_nbt(
     };
     let width = im.width();
     let height = im.height();
-    let map_width = ceil_div(width, 128);
+    let map_width = width.div_ceil(&128);
     let map_width_pixels = map_width * 128;
-    let map_height = ceil_div(height, 128);
+    let map_height = height.div_ceil(&128);
     let map_height_pixels = map_height * 128;
     let map_count = map_width * map_height;
 
@@ -203,17 +204,17 @@ fn convert_colors(image: &mut RgbImage, map: &RgbColorMap, map_width: usize) -> 
         let y = i as u32 / image.width();
         let pixel = image.get_pixel(x, y);
         let output = map.map_indices(pixel);
-        let idx = output.0 as u8;
+        let idx = output.0 as i8;
         // println!("{}", idx);
         indices[i % 128
             + (i / (128 * map_width)) % 128 * 128
             + (i / 128) % map_width * 16384
             + i
-            - (i % (16384 * map_width))] = idx as i8;
+            - (i % (16384 * map_width))] = idx;
 
         // Propagate error for dithering
         let propagate_error = |error: [i8; 3], x: u32, y: u32, factor: f32| {
-            let mut t: [u8; 3] = [0, 0, 0];
+            let mut t = [0_u8; 3];
             for ((i, err), px) in t.iter_mut().zip(&error).zip(&image.get_pixel(x, y).0) {
                 let f = *px as f32 / 256.0 + *err as f32 / 256.0 * factor;
                 if f > 1.0 {

@@ -10,6 +10,7 @@ edition = "2018"
 image = "0.23.14"
 hematite-nbt = "0.5.2"
 num_cpus = "1.13.0"
+num = "0.4.0"
 
 [profile.release]
 lto = true
