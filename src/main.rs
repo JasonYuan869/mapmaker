@@ -1,4 +1,4 @@
-use crate::color_list::{RgbColorMap, MINECRAFT_COLOR_MAP};
+use color_list::{RgbColorMap, MINECRAFT_COLOR_MAP};
 use image::{imageops::overlay, Rgb, RgbImage};
 use nbt::{Blob, Error, Map, Value};
 use num;
