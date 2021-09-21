@@ -215,7 +215,7 @@ dependencies = [
  "hematite-nbt",
  "image",
  "num",
- "num_cpus",
+ "rayon",
 ]
 
 [[package]]

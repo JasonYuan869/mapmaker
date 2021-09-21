@@ -13,12 +13,11 @@ use num::Integer;
 
 mod color_list;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() {
     const DIRECTION_NORTH: i8 = 2;
     const DIRECTION_EAST: i8 = 5;
     const DIRECTION_SOUTH: i8 = 3;
     const DIRECTION_WEST: i8 = 4;
-    // let threads = num_cpus::get();
 
     let args: Vec<String> = env::args().collect();
 
@@ -75,20 +74,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Clear existing .dat files
     if Path::new("./out/data").exists() {
-        fs::remove_dir_all("./out/data")?;
+        fs::remove_dir_all("./out/data").expect("Error clearing existing files.");
     }
-    fs::create_dir("./out/data")?;
+    fs::create_dir("./out/data").expect("Error creating out/ directory.");
 
-    let mut entries = fs::read_dir("./in")?
-        .filter_map(|entry| match entry {
-            Ok(entry) => match entry.path().extension() {
-                Some(ext) => match ext.to_str() {
-                    Some("jpg") | Some("jpeg") | Some("png") => Some(entry.path()),
-                    _ => None,
-                },
-                _ => None,
-            },
-            _ => None,
+    let mut entries = fs::read_dir("./in").expect("Error reading in/ directory.")
+        .filter_map(|entry| {
+            if let Ok(entry) = entry {
+                if let Some(ext) = entry.path().extension() {
+                    if let Some("jpg") | Some("jpeg") | Some("png") = ext.to_str() {
+                        return Some(entry.path())
+                    }
+                }
+            }
+            None
         })
         .collect::<Vec<PathBuf>>();
 
@@ -105,8 +104,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut out: (u32, u32) = (0, 0);
     for file in &entries {
         print!("Processing image {}... ", index + 1 - starting_index);
-        io::stdout().flush()?;
-        out = make_nbt(file, (index - starting_index) as u32, starting_index as u32)?;
+        io::stdout().flush().expect("IOError");
+        out = make_nbt(file, (index - starting_index) as u32, starting_index as u32)
+            .expect("Error: ");
         index += 1;
         println!("Done.")
     }
@@ -130,7 +130,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             std::process::exit(1);
         }
     };
-    Ok(())
 }
 
 fn make_nbt(
@@ -178,17 +177,10 @@ fn make_nbt(
         let start: usize = ((i % map_width) * 16384 + // H_Map
             (i / map_width) * (16384 * map_width)) as usize; // V_Map
 
-        match generate_dat_file(
+        generate_dat_file(
             &pixel_array[start..start + 16384],
             index * map_count + i + starting_index,
-        ) {
-            Ok(_) => (),
-            Err(e) => {
-                println!("Error writing NBT data.");
-                println!("{}", e);
-                std::process::exit(1)
-            }
-        }
+        ).expect("Error generating NBT files.");
     }
     Ok((map_width, map_height))
 }
