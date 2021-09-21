@@ -1,10 +1,11 @@
 use image::Rgb;
 
-// The number of colors that Minecraft supports
-const COLOR_COUNT: usize = 232;
+// The number of colors that Minecraft supports, excluding the 4 transparent ones.
+const COLOR_COUNT: usize = 244;
 
-// The colors available in Minecraft maps, first colour indexed at 4
-// Indexes 0-3 are transparent.
+/// This array contains `COLOR_COUNT` entries, indexed starting from 4 (colors 0-3 are transparent).
+/// Each element in this array represents the corresponding Minecraft map color at that index.
+/// As of Minecraft 1.17, there are 244 colours in this array.
 const COLOR_LIST: [Rgb<u8>; COLOR_COUNT] = [
     Rgb([89, 125, 39]),
     Rgb([109, 153, 48]),
@@ -238,6 +239,18 @@ const COLOR_LIST: [Rgb<u8>; COLOR_COUNT] = [
     Rgb([17, 155, 114]),
     Rgb([20, 180, 133]),
     Rgb([10, 95, 70]),
+    Rgb([70, 70, 70]),
+    Rgb([86, 86, 86]),
+    Rgb([100, 100, 100]),
+    Rgb([52, 52, 52]),
+    Rgb([152, 123, 103]),
+    Rgb([186, 150, 126]),
+    Rgb([216, 175, 147]),
+    Rgb([114, 92, 77]),
+    Rgb([89, 117, 105]),
+    Rgb([109, 144, 129]),
+    Rgb([127, 167, 150]),
+    Rgb([67, 88, 79]),
 ];
 
 pub struct RgbColorMap {
@@ -254,10 +267,13 @@ impl RgbColorMap {
     //         _ => 0
     //     }
     // }
-
+    /// This function takes an RGB color and maps it to the closest color available in Minecraft.
+    /// Returns a tuple containing the index of the mapped color and the quantization error for
+    /// dithering.
+    ///
+    /// # Arguments
+    /// * `color` - A reference to a `Rgb<u8>` containing the color to be mapped
     pub fn map_indices(&self, color: &Rgb<u8>) -> (usize, [i8; 3]) {
-        // Returns a tuple containing the index of the mapped color and the quantization error
-        // for dithering
         if color.0 == [0_u8, 0, 0] {
             return (119, [0, 0, 0]);
         }
@@ -281,8 +297,7 @@ impl RgbColorMap {
         for ((i, y), x) in error.iter_mut().zip(&color.0).zip(&self.colors[idx].0) {
             *i = (*y as i16 - *x as i16) as i8;
         }
-
-        (idx + 4, error)
+        (idx + 4, error)  // Add 4 to index because the the Minecraft map colors begin at 4
     }
 }
 
