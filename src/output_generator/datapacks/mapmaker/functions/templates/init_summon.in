@@ -1,0 +1,2 @@
+execute as @e[tag={starting_index}] at @s run summon minecraft:item_frame ~{x} ~{y} ~{z} {{Facing:{direction}b, Fixed:1b, Item:{{id:"minecraft:filled_map", tag:{{map:{i}}}, Count:1b}}, Tags:["mapmaker", "{i}"]}}
+scoreboard players set @e[tag={i}] map_num {i}

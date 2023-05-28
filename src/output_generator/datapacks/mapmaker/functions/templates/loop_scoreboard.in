@@ -1,0 +1,2 @@
+execute as @e[tag={i}] store result storage mapmaker:id id_{i} int 1 run scoreboard players get @s map_num
+execute as @e[tag={i}] run data modify entity @s Item.tag.map set from storage mapmaker:id id_{i}
