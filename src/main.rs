@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::{PathBuf};
 use anyhow::Context;
+use indicatif::ParallelProgressIterator;
 
 use rayon::prelude::*;
 
@@ -40,8 +41,7 @@ fn main() -> anyhow::Result<()> {
     let processor = Processor::new(&entries[0])?;
     generator.init_files(1, processor.map_columns as usize, processor.map_rows as usize)?;
 
-    entries.par_iter().enumerate().for_each(|(frame, entry)| {
-        println!("Processing frame {} of {}", frame + 1, entries.len());
+    entries.par_iter().enumerate().progress_count(entries.len() as u64).for_each(|(frame, entry)| {
         let image = processor.process_file(entry).unwrap();
         let maps = processor.convert_colors(image);
         maps.par_iter().enumerate().for_each(|(i, map)| {
