@@ -81,8 +81,8 @@ impl Processor {
         overlay(
             &mut map,
             &image,
-            (self.map_height - self.height) as i64 / 2,
             (self.map_width - self.width) as i64 / 2,
+            (self.map_height - self.height) as i64 / 2,
         );
 
         Ok(map)
