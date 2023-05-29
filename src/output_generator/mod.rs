@@ -72,7 +72,7 @@ impl Generator<'_> {
 
         // Write the pack.mcmeta file
         {
-            let mut pack_mcmeta = File::create(self.path.join("datapacks/pack.mcmeta"))?;
+            let mut pack_mcmeta = File::create(self.path.join("datapacks/mapmaker/pack.mcmeta"))?;
             pack_mcmeta.write_all(PACK_MCMETA.as_bytes())?;
         }
 
