@@ -38,11 +38,13 @@ impl Generator<'_> {
             if !path.is_dir() {
                 anyhow::bail!("output path is not a directory")
             }
-            if path == Path::new(".") {
+            if path.canonicalize()? == Path::new(".").canonicalize().unwrap() {
                 anyhow::bail!("output path is the current directory")
             }
+            println!("Output directory already exists. Deleting...");
             fs::remove_dir_all(path)?;
         }
+        println!("Creating output directory structure...");
         fs::create_dir_all(path.join("data"))?;
         fs::create_dir_all(path.join("datapacks/mapmaker/data/mapmaker/functions"))?;
         fs::create_dir_all(path.join("datapacks/mapmaker/data/minecraft/tags/functions"))?;

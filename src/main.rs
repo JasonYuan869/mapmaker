@@ -13,7 +13,7 @@ mod cli;
 mod output_generator;
 
 fn main() -> anyhow::Result<()> {
-    let args = cli::run().with_context(|| "failed to launch CLI")?;
+    let args = cli::run().with_context(|| "error getting arguments")?;
     let mut generator = Generator::new(&args.output_path, args.starting_index, args.top_left, args.direction)?;
 
     let mut entries = fs::read_dir(&args.input_path)
