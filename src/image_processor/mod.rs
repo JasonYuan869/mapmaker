@@ -1,11 +1,13 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, RwLock};
-use image::imageops::overlay;
-use image::RgbImage;
-use crate::image_processor::colors::{BLACK_INDEX, MapColor, MINECRAFT_COLOR_TREE, MinecraftRgb};
+use std::sync::atomic::AtomicUsize;
+use anyhow::Context;
 
-#[cfg(feature = "parallel")]
+use image::imageops::overlay;
+use image::{GenericImageView, RgbImage};
 use rayon::prelude::*;
+
+use crate::image_processor::colors::{BLACK_INDEX, MapColor, MINECRAFT_COLOR_TREE, MinecraftRgb};
 
 pub mod colors;
 
@@ -34,7 +36,7 @@ pub struct Processor {
 
     /// The number of maps needed horizontally to render the source image.
     /// Equal to `width / 128` rounded up.
-    map_columns: u32,
+    pub map_columns: u32,
 
     /// The width in pixels of all maps needed to render the source image.
     /// Equal to `map_columns * 128`.
@@ -42,7 +44,7 @@ pub struct Processor {
 
     /// The number of maps needed vertically to render the source image.
     /// Equal to `height / 128` rounded up.
-    map_rows: u32,
+    pub map_rows: u32,
 
     /// The height in pixels of all maps needed to render the source image.
     /// Equal to `map_rows * 128`.
@@ -50,43 +52,28 @@ pub struct Processor {
 }
 
 impl Processor {
-    /// Creates a new `Processor` with uninitialized fields.
-    /// The first processed file will initialize all fields.
-    pub fn default() -> Self {
-        Self {
-            width: 0,
-            height: 0,
-            map_columns: 0,
-            map_width: 0,
-            map_rows: 0,
-            map_height: 0,
-        }
-    }
-
-    /// Returns the number of maps per one image frame
-    pub fn maps_per_frame(&self) -> usize {
-        (self.map_rows * self.map_columns) as usize
-    }
-
-    // Initializes the fields based on the given width and height
-    fn init(&mut self, width: u32, height: u32) {
-        self.width = width;
-        self.height = height;
-        self.map_columns = ceil_div!(width, 128);
-        self.map_width = self.map_columns * 128;
-        self.map_rows = ceil_div!(height, 128);
-        self.map_height = self.map_rows * 128;
+    pub fn new(first_image: &Path) -> anyhow::Result<Self> {
+        let image = image::open(first_image)?;
+        let (width, height) = image.dimensions();
+        Ok(
+            Processor {
+                width,
+                height,
+                map_columns: ceil_div!(width, 128),
+                map_width: ceil_div!(width, 128) * 128,
+                map_rows: ceil_div!(height, 128),
+                map_height: ceil_div!(height, 128) * 128,
+            }
+        )
     }
 
     /// Processes the given image file by resizing it to fit on a multiple of Minecraft maps.
     /// Errors if the image dimensions do not match the dimensions of the `Processor`.
-    pub fn process_file(&mut self, source: &Path) -> anyhow::Result<RgbImage> {
+    pub fn process_file(&self, source: &Path) -> anyhow::Result<RgbImage> {
         let image = image::open(source)?.to_rgb8();
         let (width, height) = image.dimensions();
 
-        if self.width == 0 || self.height == 0 {
-            self.init(width, height);
-        } else if width != self.width || height != self.height {
+        if width != self.width || height != self.height {
             anyhow::bail!("image dimensions do not match");
         }
 
@@ -104,16 +91,24 @@ impl Processor {
         Ok(map)
     }
 
-    /// Same as `convert_colors`, but parallelized by splitting the image into horizontal strips.
-    #[cfg(feature = "parallel")]
-    pub fn convert_colors_parallel(&self, image: RgbImage) -> Vec<MapColor> {
-        let par = Arc::new(RwLock::new(image));
-        let mut result = vec![BLACK_INDEX; (self.map_width * self.map_height) as usize];
-    }
+    /// Same as `convert_colors`, but parallelized by splitting the image into horizontal strips, with each strip lagging behind the previous one by two pixels.
+    // pub fn convert_colors_parallel(&self, mut image: RgbImage) -> anyhow::Result<Vec<[MapColor; 16384]>> {
+    //     let par = image.enumerate_pixels_mut().map(|pixel| Arc::new(RwLock::new(pixel))).collect::<Vec<_>>();
+    //     let result = Arc::new(RwLock::new(vec![[BLACK_INDEX; 16384]; (self.map_width * self.map_height) as usize]));
+    //     let mut indicies: Vec<AtomicUsize> = (0..self.map_rows+1).map(|_| AtomicUsize::new(0)).collect();
+    //     indicies[0].store(2, std::sync::atomic::Ordering::Relaxed);
+    //
+    //
+    //     return if let Ok(x) = Arc::try_unwrap(result) {
+    //         Ok(x.into_inner()?)
+    //     } else {
+    //         Err(anyhow::anyhow!("multiple remaining references to mc color vector"))
+    //     }
+    // }
 
     /// Converts the colors in the given image to the closest Minecraft map color.
     /// Returns a vector of Minecraft map colors split by map
-    pub fn convert_colors(&self, image: &mut RgbImage) -> Vec<[MapColor; 16384]> {
+    pub fn convert_colors(&self, mut image: RgbImage) -> Vec<[MapColor; 16384]> {
         let mut result = vec![[BLACK_INDEX; 16384]; (self.map_columns * self.map_rows) as usize];
 
         for y in 0..image.height() {

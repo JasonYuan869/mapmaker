@@ -9,7 +9,7 @@ edition = "2018"
 [dependencies]
 image = "0.24.6"
 hematite-nbt = "0.5.2"
-rayon = { version = "1.5.1", optional = true }
+rayon = "1.5.1"
 num = "0.4.0"
 anyhow = "1.0.66"
 kd-tree = "0.5.1"
@@ -19,6 +19,3 @@ inquire = "0.6.2"
 
 [profile.release]
 lto = true
-
-[features]
-parallel = ["dep:rayon"]
