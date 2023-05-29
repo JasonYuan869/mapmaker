@@ -44,7 +44,9 @@ fn main() -> anyhow::Result<()> {
     entries.par_iter().enumerate().progress_count(entries.len() as u64).for_each(|(frame, entry)| {
         let image = processor.process_file(entry).unwrap();
         let maps = processor.convert_colors(image);
-        maps.par_iter().enumerate().for_each(|(i, map)| {
+
+        // Optimization: Don't parallelize this step?
+        maps.iter().enumerate().for_each(|(i, map)| {
             generator.generate_dat(map, i, frame).unwrap();
         });
     });
