@@ -1,13 +1,13 @@
-use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex, RwLock};
-use std::sync::atomic::AtomicUsize;
-use anyhow::Context;
+use std::path::{Path};
+
+
+
 
 use image::imageops::overlay;
 use image::{GenericImageView, RgbImage};
 use rayon::prelude::*;
 
-use crate::image_processor::colors::{BLACK_INDEX, MapColor, MINECRAFT_COLOR_TREE, MinecraftRgb};
+use crate::image_processor::colors::{BLACK_INDEX, MapColor, MINECRAFT_COLOR_TREE};
 
 pub mod colors;
 
