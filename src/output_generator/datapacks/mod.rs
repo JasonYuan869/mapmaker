@@ -1,7 +1,3 @@
-
-
-
-
 // These constants are files that are generated directly
 pub(super) const LOOP_CHECK_MCFUNCTION: &str = include_str!("mapmaker/functions/loop_check.mcfunction");
 pub(super) const RENDER_MCFUNCTION: &str = include_str!("mapmaker/functions/render.mcfunction");

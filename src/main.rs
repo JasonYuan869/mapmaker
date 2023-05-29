@@ -44,7 +44,7 @@ fn main() -> anyhow::Result<()> {
     println!("Starting conversion process...");
     let start = std::time::Instant::now();
 
-    generator.init_files(1, processor.map_columns as usize, processor.map_rows as usize)?;
+    generator.init_files(entries.len(), processor.map_columns as usize, processor.map_rows as usize)?;
 
     entries.par_iter().enumerate().progress_count(entries.len() as u64).for_each(|(frame, entry)| {
         let image = processor.process_file(entry).unwrap();
