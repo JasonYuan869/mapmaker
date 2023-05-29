@@ -39,17 +39,25 @@ fn main() -> anyhow::Result<()> {
 
     // Get the first image to initialize the processor with the dimensions
     let processor = Processor::new(&entries[0])?;
+
+    // Time the conversion process
+    println!("Starting conversion process...");
+    let start = std::time::Instant::now();
+
     generator.init_files(1, processor.map_columns as usize, processor.map_rows as usize)?;
 
     entries.par_iter().enumerate().progress_count(entries.len() as u64).for_each(|(frame, entry)| {
         let image = processor.process_file(entry).unwrap();
         let maps = processor.convert_colors(image);
 
-        // Optimization: Don't parallelize this step?
-        maps.iter().enumerate().for_each(|(i, map)| {
+        maps.par_iter().enumerate().for_each(|(i, map)| {
             generator.generate_dat(map, i, frame).unwrap();
         });
     });
+
+    let duration = start.elapsed();
+    println!("Finished in {}.{:03} seconds", duration.as_secs(), duration.subsec_millis());
+
     generator.generate_idcounts()?;
     generator.generate_datapack()?;
 
