@@ -2,7 +2,6 @@ use std::path::Path;
 
 use image::{GenericImageView, RgbImage};
 use image::imageops::overlay;
-use rayon::prelude::*;
 
 use crate::image_processor::colors::{BLACK_INDEX, MapColor, MINECRAFT_COLOR_TREE};
 
