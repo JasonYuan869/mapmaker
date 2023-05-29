@@ -1,7 +1,8 @@
 use image::Rgb;
 use kd_tree::KdTree3;
-use once_cell::sync::Lazy;
 use typenum::U3;
+
+use lazy_static::lazy_static;
 
 /// The number of colors that Minecraft supports, excluding the 4 transparent ones.
 const COLOR_COUNT: usize = 244;
@@ -301,4 +302,6 @@ impl MinecraftColorTree {
     }
 }
 
-pub static MINECRAFT_COLOR_TREE: Lazy<MinecraftColorTree> = Lazy::new(|| MinecraftColorTree(KdTree3::build(Vec::from(COLOR_LIST))));
+lazy_static! {
+    pub static ref MINECRAFT_COLOR_TREE: MinecraftColorTree = MinecraftColorTree(KdTree3::build(Vec::from(COLOR_LIST)));
+}
