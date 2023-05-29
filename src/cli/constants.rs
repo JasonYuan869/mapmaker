@@ -4,20 +4,20 @@
 #[repr(u8)]
 #[derive(Copy, Clone)]
 pub enum Direction {
-    NORTH = 2,
-    SOUTH = 3,
-    WEST = 4,
-    EAST = 5,
+    North = 2,
+    South = 3,
+    West = 4,
+    East = 5,
 }
 
 impl From<&str> for Direction {
     fn from(s: &str) -> Self {
         match s {
-            "north" => Direction::NORTH,
-            "south" => Direction::SOUTH,
-            "west" => Direction::WEST,
-            "east" => Direction::EAST,
-            _ => Direction::EAST,
+            "north" => Direction::North,
+            "south" => Direction::South,
+            "west" => Direction::West,
+            "east" => Direction::East,
+            _ => Direction::North,
         }
     }
 }

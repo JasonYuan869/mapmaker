@@ -201,22 +201,22 @@ impl Generator<'_> {
             let y: i32;
             let z: i32;
             match self.direction {
-                Direction::NORTH => {
+                Direction::North => {
                     x = 0 - (i % self.map_columns) as i32;
                     y = 0 - (i / self.map_columns) as i32;
                     z = 0;
                 }
-                Direction::SOUTH => {
+                Direction::South => {
                     x = (i % self.map_columns) as i32;
                     y = 0 - (i / self.map_columns) as i32;
                     z = 0;
                 }
-                Direction::WEST => {
+                Direction::West => {
                     x = 0;
                     y = 0 - (i / self.map_columns) as i32;
                     z = 0 - (i % self.map_columns) as i32;
                 }
-                Direction::EAST => {
+                Direction::East => {
                     x = 0;
                     y = 0 - (i / self.map_columns) as i32;
                     z = (i % self.map_columns) as i32;
