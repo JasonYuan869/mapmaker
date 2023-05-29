@@ -131,13 +131,13 @@ impl Generator<'_> {
 
     /// Generates the `idcounts.dat` file to prevent newly opened maps in Minecraft
     /// from overwriting these generated ones.
-    fn generate_idcounts(&self) -> anyhow::Result<()> {
+    pub fn generate_idcounts(&self) -> anyhow::Result<()> {
         if self.frames == 0 || self.maps_per_frame == 0 {
             anyhow::bail!("uninitialized generator");
         }
 
         // Write ID Counts file to prevent new maps from overwriting the generated ones
-        let mut idcounts = File::create(self.path.join("data/idcounts.data"))?;
+        let mut idcounts = File::create(self.path.join("data/idcounts.dat"))?;
         let mut idcounts_data: Map<String, Value> = Map::new();
         let last_map = (self.starting_index + self.frames * self.maps_per_frame) as i32;
         idcounts_data.insert(

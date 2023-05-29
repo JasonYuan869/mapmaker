@@ -291,9 +291,9 @@ impl MinecraftColorTree {
 
         // KdTree returns the squared distance in `nearest`, but we want the actual distance
         let distance = [
-            nearest.item.0[0] as i16 - color.0[0] as i16,
-            nearest.item.0[1] as i16 - color.0[1] as i16,
-            nearest.item.0[2] as i16 - color.0[2] as i16,
+            color.0[0] as i16 - nearest.item.0[0] as i16,
+            color.0[1] as i16 - nearest.item.0[1] as i16,
+            color.0[2] as i16 - nearest.item.0[2] as i16,
         ];
 
         // Return the MC index of the color and the distance

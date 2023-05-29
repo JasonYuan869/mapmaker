@@ -4,14 +4,14 @@ use image::imageops::overlay;
 use image::RgbImage;
 use crate::image_processor::colors::{BLACK_INDEX, MapColor, MINECRAFT_COLOR_TREE, MinecraftRgb};
 
-#[cfg(feature = "rayon")]
+#[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
 pub mod colors;
 
 macro_rules! ceil_div {
     ($a:expr, $b:expr) => {
-        ($a + $b - 1) / $b
+        $a / $b + if $a % $b != 0 { 1 } else { 0 }
     };
 }
 
@@ -22,7 +22,7 @@ const DITHERING_VECTORS: [[i32; 2]; 4] = [
     [0, 1],
     [1, 1],
 ];
-const DITHERING_FACTORS: [f64; 4] = [0.4375, 0.1875, 0.3125, 0.0625, ];
+const DITHERING_FACTORS: [f32; 4] = [0.4375, 0.1875, 0.3125, 0.0625];
 
 /// The image processor struct.
 pub struct Processor {
@@ -105,7 +105,7 @@ impl Processor {
     }
 
     /// Same as `convert_colors`, but parallelized by splitting the image into horizontal strips.
-    #[cfg(feature = "rayon")]
+    #[cfg(feature = "parallel")]
     pub fn convert_colors_parallel(&self, image: RgbImage) -> Vec<MapColor> {
         let par = Arc::new(RwLock::new(image));
         let mut result = vec![BLACK_INDEX; (self.map_width * self.map_height) as usize];
@@ -113,11 +113,11 @@ impl Processor {
 
     /// Converts the colors in the given image to the closest Minecraft map color.
     /// Returns a vector of Minecraft map colors split by map
-    pub fn convert_colors(&self, mut image: RgbImage) -> Vec<[MapColor; 16384]> {
+    pub fn convert_colors(&self, image: &mut RgbImage) -> Vec<[MapColor; 16384]> {
         let mut result = vec![[BLACK_INDEX; 16384]; (self.map_columns * self.map_rows) as usize];
 
-        for x in 0..image.width() {
-            for y in 0..image.height() {
+        for y in 0..image.height() {
+            for x in 0..image.width() {
                 // map relates to the index of the map across all maps
                 // map_px relates to the index of the pixel within a single map
                 let map_x = x / 128;
@@ -136,6 +136,8 @@ impl Processor {
                     continue;
                 }
 
+                let errors = difference.map(|err| err as f32 / 256.0);
+
                 // Propagate errors to each of the four pixels according to Floyd-Steinberg
                 for ([vx, vy], factor) in DITHERING_VECTORS.iter().zip(DITHERING_FACTORS) {
                     let x = x as i32 + *vx;
@@ -147,13 +149,11 @@ impl Processor {
                     }
 
                     let original_color = image.get_pixel_mut(x as u32, y as u32);
-                    for (channel, error_val) in original_color.0.iter_mut().zip(difference) {
-                        let mut value = *channel as f64 / 256.0;
-                        let error = error_val as f64 / 256.0;
-                        value += error * factor;
-                        if value > 1.0 {
+                    for (channel, error) in original_color.0.iter_mut().zip(errors) {
+                        let value = *channel as f32 / 256.0 + error * factor;
+                        if value >= 1.0 {
                             *channel = 255;
-                        } else if value < 0.0 {
+                        } else if value <= 0.0 {
                             *channel = 0;
                         } else {
                             *channel = (value * 256.0) as u8;

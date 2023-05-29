@@ -11,11 +11,15 @@ mod output_generator;
 fn main() -> anyhow::Result<()> {
     let mut processor = Processor::default();
     let mut generator = Generator::new(Path::new("out"), 0)?;
-    let image = processor.process_file(Path::new("1.png"))?;
-    let z = processor.convert_colors(image);
+    let mut image = processor.process_file(Path::new("1.jpg"))?;
+    let z = processor.convert_colors(&mut image);
+    image.save("out/1.jpg")?;
 
     generator.init_files(1, processor.maps_per_frame())?;
-    generator.generate_dat(&z[0], 0)?;
+    for (i, map) in z.iter().enumerate() {
+        generator.generate_dat(map, i)?;
+    }
+    generator.generate_idcounts()?;
 
 
     Ok(())
