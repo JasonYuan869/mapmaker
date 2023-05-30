@@ -51,7 +51,7 @@ pub fn run() -> anyhow::Result<CliArgs> {
         .prompt()?;
 
     let output_path = inquire::Text::new("Enter the path to the output folder")
-        .with_help_message("This folder will be overwritten if it already exists")
+        .with_help_message("This folder will contain the data/ and datapacks/ folders")
         .with_default("out/")
         .prompt()?;
 
