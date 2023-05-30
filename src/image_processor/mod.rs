@@ -98,12 +98,13 @@ impl Processor {
 
                 let color = image.get_pixel(x, y);
                 let (mc_idx, difference) = MINECRAFT_COLOR_TREE.find_closest(color);
-                result[map_idx][map_px_idx] = mc_idx;
 
                 // Continue if no error to propagate
                 if difference == [0, 0, 0] {
                     continue;
                 }
+
+                result[map_idx][map_px_idx] = mc_idx;
 
                 let errors = difference.map(|err| err as f32 / 256.0);
 
