@@ -16,7 +16,7 @@ An experimental program written in Rust that converts image files to a Minecraft
 - Long wait time to load the maps in Minecraft (see the last paragraph of the last section)
   - Takes 10x the duration of the source footage
   - Not an issue for single frame images
-- Limited color scheme (232 visible colors only, down from ~16 million)
+- Limited color scheme (~245 visible colors only, down from ~16 million)
   - Somewhat compensated by dithering
 - Very resource intensive
   - Causes server side lag (even in singleplayer) as the garbage collector attempts to save memory
@@ -24,27 +24,12 @@ An experimental program written in Rust that converts image files to a Minecraft
     - About 15,000 maps with 6 GB of RAM allocated to Minecraft (variable)
 
 ## Instructions
-To use this program, first create a new superflat void world. This step is technically unnecessary, but the datapack will always summon the item frames around (0 100 0).
+1. Run the program on the command line and follow the prompts. 
+2. Copy the files from the output directory into your world save.
+3. Upon world load, the maps will be automatically summoned at the provided coordinates.
 
 If converting a video, use `ffmpeg` to first convert it into a series of images (read [ffmpeg manual](https://ffmpeg.org/ffmpeg.html) or ask Google).
 In both cases below, it may be easier to use symlinks instead of copying files to/from the program folder, especially if the source is long or the quality is high.
-
-### Using the provided binary (Windows)
-1. Download the .zip file from the releases page and unzip.
-2. Place the sources images in `in`.
-3. Run `mapmaker.exe`.
-4. Follow the instructions to set the direction, upper left corner coordinate, and starting map ID of the generated maps.
-5. Copy/move all files in `out` to the base of your world save.
-6. Open the world in Minecraft.
-
-### Building from source
-Prerequisites: `rust`, `cargo` (follow instructions [here](https://www.rust-lang.org/learn/get-started))
-1. Clone this repo.
-2. Place the sources images in `in`.
-3. Run `cargo run --release` to build the program in release mode (significantly faster).
-4. Follow the instructions to set the direction, upper left corner coordinate, and starting map ID of the generated maps.
-5. Copy/move all files in `out` to the base of your world save.
-6. Open the world in Minecraft.
 
 ## How it Works
 ### Map NBT structure
