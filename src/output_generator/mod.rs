@@ -247,12 +247,12 @@ impl InitializedGenerator<'_> {
                 Direction::West => {
                     x = 0;
                     y = 0 - (i / self.map_columns) as i32;
-                    z = 0 - (i % self.map_columns) as i32;
+                    z = (i % self.map_columns) as i32;
                 }
                 Direction::East => {
                     x = 0;
                     y = 0 - (i / self.map_columns) as i32;
-                    z = (i % self.map_columns) as i32;
+                    z = 0 - (i % self.map_columns) as i32;
                 }
             }
             write!(
