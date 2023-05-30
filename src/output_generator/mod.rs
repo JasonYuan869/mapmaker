@@ -28,7 +28,6 @@ pub struct InitializedGenerator<'a> {
     generator: Generator<'a>,
     frames: usize,
     map_columns: usize,
-    map_rows: usize,
     maps_per_frame: usize,
 }
 
