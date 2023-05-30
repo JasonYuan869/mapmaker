@@ -6,7 +6,6 @@ use constants::{Direction, Location};
 
 pub mod constants;
 
-
 pub struct CliArgs {
     pub top_left: Location,
     pub direction: Direction,
@@ -32,14 +31,17 @@ pub fn run() -> anyhow::Result<CliArgs> {
         .prompt()?;
 
     let direction_opts = vec!["north", "east", "south", "west", "up", "down"];
-    let direction = inquire::Select::new("Select the direction the maps will facing", direction_opts)
-        .with_starting_cursor(0)
-        .with_help_message("This can be found in the F3 menu by looking towards a direction")
-        .prompt()?;
+    let direction =
+        inquire::Select::new("Select the direction the maps will facing", direction_opts)
+            .with_starting_cursor(0)
+            .with_help_message("This can be found in the F3 menu by looking towards a direction")
+            .prompt()?;
 
     let starting_index = CustomType::<usize>::new("Enter the starting index of the maps")
         .with_error_message("Please enter a valid integer")
-        .with_help_message("If you already have maps in the world, this should be the index of the next map")
+        .with_help_message(
+            "If you already have maps in the world, this should be the index of the next map",
+        )
         .with_default(0)
         .prompt()?;
 
@@ -53,21 +55,20 @@ pub fn run() -> anyhow::Result<CliArgs> {
         .with_default("out/")
         .prompt()?;
 
-    let confirmation = inquire::Confirm::new("All contents of the output folder will be overwritten. Continue?")
-        .with_default(true)
-        .prompt()?;
+    let confirmation =
+        inquire::Confirm::new("All contents of the output folder will be overwritten. Continue?")
+            .with_default(true)
+            .prompt()?;
 
     if !confirmation {
         anyhow::bail!("user cancelled");
     }
 
-    Ok(
-        CliArgs {
-            top_left: (x, y, z),
-            direction: direction.into(),
-            starting_index,
-            input_path: PathBuf::from(input_path),
-            output_path: PathBuf::from(output_path),
-        }
-    )
+    Ok(CliArgs {
+        top_left: (x, y, z),
+        direction: direction.into(),
+        starting_index,
+        input_path: PathBuf::from(input_path),
+        output_path: PathBuf::from(output_path),
+    })
 }

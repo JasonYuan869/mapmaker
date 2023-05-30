@@ -1,20 +1,25 @@
-use std::fs;
-use std::path::{PathBuf};
 use anyhow::Context;
 use indicatif::ParallelProgressIterator;
+use std::fs;
+use std::path::PathBuf;
 
 use rayon::prelude::*;
 
 use crate::image_processor::Processor;
 use crate::output_generator::Generator;
 
-mod image_processor;
 mod cli;
+mod image_processor;
 mod output_generator;
 
 fn main() -> anyhow::Result<()> {
     let args = cli::run().with_context(|| "error getting arguments")?;
-    let generator = Generator::new(&args.output_path, args.starting_index, args.top_left, args.direction)?;
+    let generator = Generator::new(
+        &args.output_path,
+        args.starting_index,
+        args.top_left,
+        args.direction,
+    )?;
 
     let mut entries = fs::read_dir(&args.input_path)
         .with_context(|| "failed to read input directory")?
@@ -44,19 +49,31 @@ fn main() -> anyhow::Result<()> {
     println!("Starting conversion process...");
     let start = std::time::Instant::now();
 
-    let generator = generator.init_files(entries.len(), processor.map_columns as usize, processor.map_rows as usize)?;
+    let generator = generator.init_files(
+        entries.len(),
+        processor.map_columns as usize,
+        processor.map_rows as usize,
+    )?;
 
-    entries.par_iter().enumerate().progress_count(entries.len() as u64).for_each(|(frame, entry)| {
-        let image = processor.process_file(entry).unwrap();
-        let maps = processor.convert_colors(image);
+    entries
+        .par_iter()
+        .enumerate()
+        .progress_count(entries.len() as u64)
+        .for_each(|(frame, entry)| {
+            let image = processor.process_file(entry).unwrap();
+            let maps = processor.convert_colors(image);
 
-        maps.par_iter().enumerate().for_each(|(i, map)| {
-            generator.generate_dat(map, i, frame).unwrap();
+            maps.par_iter().enumerate().for_each(|(i, map)| {
+                generator.generate_dat(map, i, frame).unwrap();
+            });
         });
-    });
 
     let duration = start.elapsed();
-    println!("Finished in {}.{:03} seconds", duration.as_secs(), duration.subsec_millis());
+    println!(
+        "Finished in {}.{:03} seconds",
+        duration.as_secs(),
+        duration.subsec_millis()
+    );
 
     generator.generate_idcounts()?;
     generator.generate_datapack()?;

@@ -1,5 +1,3 @@
-
-
 /// Direction enum with values that correspond to Minecraft's NBT `Facing` byte
 #[repr(u8)]
 #[derive(Copy, Clone)]

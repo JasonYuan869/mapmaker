@@ -7,7 +7,9 @@ use nbt::{Blob, Map, Value};
 
 use crate::cli::constants::{Direction, Location};
 use crate::image_processor::colors::MapColor;
-use crate::output_generator::datapacks::{HEADER, LOAD_JSON, LOOP_CHECK_MCFUNCTION, PACK_MCMETA, RENDER_MCFUNCTION, TICK_JSON};
+use crate::output_generator::datapacks::{
+    HEADER, LOAD_JSON, LOOP_CHECK_MCFUNCTION, PACK_MCMETA, RENDER_MCFUNCTION, TICK_JSON,
+};
 
 mod datapacks;
 
@@ -36,7 +38,12 @@ impl Generator<'_> {
     /// It will empty the given directory if it exists and create the output directory structure
     ///
     /// Run `init()` first before generating any files.
-    pub fn new(path: &Path, starting_index: usize, top_left: Location, direction: Direction) -> anyhow::Result<Generator> {
+    pub fn new(
+        path: &Path,
+        starting_index: usize,
+        top_left: Location,
+        direction: Direction,
+    ) -> anyhow::Result<Generator> {
         if path.exists() {
             if !path.is_dir() {
                 anyhow::bail!("output path is not a directory")
@@ -51,21 +58,24 @@ impl Generator<'_> {
         fs::create_dir_all(path.join("data"))?;
         fs::create_dir_all(path.join("datapacks/mapmaker/data/mapmaker/functions"))?;
         fs::create_dir_all(path.join("datapacks/mapmaker/data/minecraft/tags/functions"))?;
-        Ok(
-            Generator {
-                path,
-                starting_index,
-                top_left,
-                direction,
-            }
-        )
+        Ok(Generator {
+            path,
+            starting_index,
+            top_left,
+            direction,
+        })
     }
 }
 
 impl<'a> Generator<'a> {
     /// Initialize the files needed for the datapack.
     /// Consumes the generator and returns an initialized generator.
-    pub fn init_files(self, frames: usize, map_columns: usize, map_rows: usize) -> anyhow::Result<InitializedGenerator<'a>> {
+    pub fn init_files(
+        self,
+        frames: usize,
+        map_columns: usize,
+        map_rows: usize,
+    ) -> anyhow::Result<InitializedGenerator<'a>> {
         // Write the pack.mcmeta file
         {
             let mut pack_mcmeta = File::create(self.path.join("datapacks/mapmaker/pack.mcmeta"))?;
@@ -74,48 +84,66 @@ impl<'a> Generator<'a> {
 
         // Write the loop_check.mcfunction file
         {
-            let mut loop_mcfunction = File::create(self.path.join("datapacks/mapmaker/data/mapmaker/functions/loop_check.mcfunction"))?;
+            let mut loop_mcfunction = File::create(
+                self.path
+                    .join("datapacks/mapmaker/data/mapmaker/functions/loop_check.mcfunction"),
+            )?;
             loop_mcfunction.write_all(LOOP_CHECK_MCFUNCTION.as_bytes())?;
         }
 
         // Write the render.mcfunction file
         {
-            let mut render_mcfunction = File::create(self.path.join("datapacks/mapmaker/data/mapmaker/functions/render.mcfunction"))?;
+            let mut render_mcfunction = File::create(
+                self.path
+                    .join("datapacks/mapmaker/data/mapmaker/functions/render.mcfunction"),
+            )?;
             render_mcfunction.write_all(RENDER_MCFUNCTION.as_bytes())?;
         }
 
         // Write the Minecraft init and tick files
         {
-            let mut load_json = File::create(self.path.join("datapacks/mapmaker/data/minecraft/tags/functions/load.json"))?;
+            let mut load_json = File::create(
+                self.path
+                    .join("datapacks/mapmaker/data/minecraft/tags/functions/load.json"),
+            )?;
             load_json.write_all(LOAD_JSON.as_bytes())?;
         }
         {
-            let mut tick_json = File::create(self.path.join("datapacks/mapmaker/data/minecraft/tags/functions/tick.json"))?;
+            let mut tick_json = File::create(
+                self.path
+                    .join("datapacks/mapmaker/data/minecraft/tags/functions/tick.json"),
+            )?;
             tick_json.write_all(TICK_JSON.as_bytes())?;
         }
 
-        Ok(
-            InitializedGenerator {
-                generator: self,
-                frames,
-                map_columns,
-                map_rows,
-                maps_per_frame: map_columns * map_rows,
-            }
-        )
+        Ok(InitializedGenerator {
+            generator: self,
+            frames,
+            map_columns,
+            map_rows,
+            maps_per_frame: map_columns * map_rows,
+        })
     }
 }
 
 impl InitializedGenerator<'_> {
     /// Generates the `.dat` file for a given image, which stores the
     /// map's color data in a Minecraft-readable format.
-    pub fn generate_dat(&self, colors: &[MapColor], index: usize, frame: usize) -> anyhow::Result<()> {
+    pub fn generate_dat(
+        &self,
+        colors: &[MapColor],
+        index: usize,
+        frame: usize,
+    ) -> anyhow::Result<()> {
         if self.frames == 0 || self.maps_per_frame == 0 {
             anyhow::bail!("uninitialized generator");
         }
         let map_index = frame * self.maps_per_frame + index;
 
-        let filename = self.generator.path.join(format!("data/map_{map_index}.dat"));
+        let filename = self
+            .generator
+            .path
+            .join(format!("data/map_{map_index}.dat"));
 
         // Used for the inner "Data" compound
         let mut data: Map<String, Value> = Map::new();
@@ -161,10 +189,7 @@ impl InitializedGenerator<'_> {
         let mut idcounts = File::create(self.generator.path.join("data/idcounts.dat"))?;
         let mut idcounts_data: Map<String, Value> = Map::new();
         let last_map = (self.generator.starting_index + self.frames * self.maps_per_frame) as i32;
-        idcounts_data.insert(
-            "map".to_string(),
-            Value::Int(last_map),
-        );
+        idcounts_data.insert("map".to_string(), Value::Int(last_map));
         let mut idcounts_file = Blob::new();
         idcounts_file.insert("data", Value::Compound(idcounts_data))?;
 
@@ -185,21 +210,25 @@ impl InitializedGenerator<'_> {
     }
 
     fn generate_init_mcfunction(&self) -> anyhow::Result<()> {
-        let mut init_mcfunction = File::create(self.generator.path.join("datapacks/mapmaker/data/mapmaker/functions/init.mcfunction"))?;
+        let mut init_mcfunction = File::create(
+            self.generator
+                .path
+                .join("datapacks/mapmaker/data/mapmaker/functions/init.mcfunction"),
+        )?;
         write_header(&mut init_mcfunction)?;
         // Write the init commands, this initializes the scoreboard
         // and summons the top left map
         write!(
             &mut init_mcfunction,
             include_str!("datapacks/mapmaker/functions/templates/init_commands.in"),
-            maps_per_frame=self.maps_per_frame,
-            frames=self.frames,
-            total_maps=self.maps_per_frame * self.frames,
-            starting_index=self.generator.starting_index,
-            x=self.generator.top_left.0,
-            y=self.generator.top_left.1,
-            z=self.generator.top_left.2,
-            direction=self.generator.direction as u8,
+            maps_per_frame = self.maps_per_frame,
+            frames = self.frames,
+            total_maps = self.maps_per_frame * self.frames,
+            starting_index = self.generator.starting_index,
+            x = self.generator.top_left.0,
+            y = self.generator.top_left.1,
+            z = self.generator.top_left.2,
+            direction = self.generator.direction as u8,
         )?;
 
         // Summon the remaining maps
@@ -232,19 +261,23 @@ impl InitializedGenerator<'_> {
             write!(
                 &mut init_mcfunction,
                 include_str!("datapacks/mapmaker/functions/templates/init_summon.in"),
-                starting_index=self.generator.starting_index,
-                x=x,
-                y=y,
-                z=z,
-                direction=self.generator.direction as u8,
-                i=i+self.generator.starting_index,
+                starting_index = self.generator.starting_index,
+                x = x,
+                y = y,
+                z = z,
+                direction = self.generator.direction as u8,
+                i = i + self.generator.starting_index,
             )?;
         }
         Ok(())
     }
 
     fn generate_loop_mcfunction(&self) -> anyhow::Result<()> {
-        let mut loop_mcfunction = File::create(self.generator.path.join("datapacks/mapmaker/data/mapmaker/functions/loop.mcfunction"))?;
+        let mut loop_mcfunction = File::create(
+            self.generator
+                .path
+                .join("datapacks/mapmaker/data/mapmaker/functions/loop.mcfunction"),
+        )?;
         write_header(&mut loop_mcfunction)?;
         write!(
             &mut loop_mcfunction,
@@ -255,20 +288,24 @@ impl InitializedGenerator<'_> {
             write!(
                 &mut loop_mcfunction,
                 include_str!("datapacks/mapmaker/functions/templates/loop_scoreboard.in"),
-                i=i+self.generator.starting_index
+                i = i + self.generator.starting_index
             )?;
         }
         Ok(())
     }
 
     fn generate_restart_mcfunction(&self) -> anyhow::Result<()> {
-        let mut restart_mcfunction = File::create(self.generator.path.join("datapacks/mapmaker/data/mapmaker/functions/restart.mcfunction"))?;
+        let mut restart_mcfunction = File::create(
+            self.generator
+                .path
+                .join("datapacks/mapmaker/data/mapmaker/functions/restart.mcfunction"),
+        )?;
         write_header(&mut restart_mcfunction)?;
         for i in 0..self.maps_per_frame {
             write!(
                 &mut restart_mcfunction,
                 include_str!("datapacks/mapmaker/functions/templates/restart.in"),
-                i=i+self.generator.starting_index
+                i = i + self.generator.starting_index
             )?;
         }
         Ok(())

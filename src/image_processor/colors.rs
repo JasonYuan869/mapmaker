@@ -303,5 +303,6 @@ impl MinecraftColorTree {
 }
 
 lazy_static! {
-    pub static ref MINECRAFT_COLOR_TREE: MinecraftColorTree = MinecraftColorTree(KdTree3::build(Vec::from(COLOR_LIST)));
+    pub static ref MINECRAFT_COLOR_TREE: MinecraftColorTree =
+        MinecraftColorTree(KdTree3::build(Vec::from(COLOR_LIST)));
 }

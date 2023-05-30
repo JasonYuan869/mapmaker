@@ -1,9 +1,9 @@
 use std::path::Path;
 
-use image::{GenericImageView, RgbImage};
 use image::imageops::overlay;
+use image::{GenericImageView, RgbImage};
 
-use crate::image_processor::colors::{BLACK_INDEX, MapColor, MINECRAFT_COLOR_TREE};
+use crate::image_processor::colors::{MapColor, BLACK_INDEX, MINECRAFT_COLOR_TREE};
 
 pub mod colors;
 
@@ -14,12 +14,7 @@ macro_rules! ceil_div {
 }
 
 // For the Floyd-Steinberg dithering algorithm
-const DITHERING_VECTORS: [[i32; 2]; 4] = [
-    [1, 0],
-    [-1, 1],
-    [0, 1],
-    [1, 1],
-];
+const DITHERING_VECTORS: [[i32; 2]; 4] = [[1, 0], [-1, 1], [0, 1], [1, 1]];
 const DITHERING_FACTORS: [f32; 4] = [0.4375, 0.1875, 0.3125, 0.0625];
 
 /// The image processor struct.
@@ -51,16 +46,14 @@ impl Processor {
     pub fn new(first_image: &Path) -> anyhow::Result<Self> {
         let image = image::open(first_image)?;
         let (width, height) = image.dimensions();
-        Ok(
-            Processor {
-                width,
-                height,
-                map_columns: ceil_div!(width, 128),
-                map_width: ceil_div!(width, 128) * 128,
-                map_rows: ceil_div!(height, 128),
-                map_height: ceil_div!(height, 128) * 128,
-            }
-        )
+        Ok(Processor {
+            width,
+            height,
+            map_columns: ceil_div!(width, 128),
+            map_width: ceil_div!(width, 128) * 128,
+            map_rows: ceil_div!(height, 128),
+            map_height: ceil_div!(height, 128) * 128,
+        })
     }
 
     /// Processes the given image file by resizing it to fit on a multiple of Minecraft maps.
