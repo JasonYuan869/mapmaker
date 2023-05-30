@@ -4,3 +4,4 @@ pub(super) const RENDER_MCFUNCTION: &str = include_str!("mapmaker/functions/rend
 pub(super) const PACK_MCMETA: &str = include_str!("pack.mcmeta");
 pub(super) const LOAD_JSON: &str = include_str!("minecraft/tags/functions/load.json");
 pub(super) const TICK_JSON: &str = include_str!("minecraft/tags/functions/tick.json");
+pub(super) const HEADER: &str = include_str!("mapmaker/functions/templates/header.in");

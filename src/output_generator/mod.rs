@@ -7,7 +7,7 @@ use nbt::{Blob, Map, Value};
 
 use crate::cli::constants::{Direction, Location};
 use crate::image_processor::colors::MapColor;
-use crate::output_generator::datapacks::{LOAD_JSON, LOOP_CHECK_MCFUNCTION, PACK_MCMETA, RENDER_MCFUNCTION, TICK_JSON};
+use crate::output_generator::datapacks::{HEADER, LOAD_JSON, LOOP_CHECK_MCFUNCTION, PACK_MCMETA, RENDER_MCFUNCTION, TICK_JSON};
 
 mod datapacks;
 
@@ -187,6 +187,7 @@ impl InitializedGenerator<'_> {
 
     fn generate_init_mcfunction(&self) -> anyhow::Result<()> {
         let mut init_mcfunction = File::create(self.generator.path.join("datapacks/mapmaker/data/mapmaker/functions/init.mcfunction"))?;
+        write_header(&mut init_mcfunction)?;
         // Write the init commands, this initializes the scoreboard
         // and summons the top left map
         write!(
@@ -245,6 +246,7 @@ impl InitializedGenerator<'_> {
 
     fn generate_loop_mcfunction(&self) -> anyhow::Result<()> {
         let mut loop_mcfunction = File::create(self.generator.path.join("datapacks/mapmaker/data/mapmaker/functions/loop.mcfunction"))?;
+        write_header(&mut loop_mcfunction)?;
         write!(
             &mut loop_mcfunction,
             include_str!("datapacks/mapmaker/functions/templates/loop_commands.in")
@@ -262,7 +264,7 @@ impl InitializedGenerator<'_> {
 
     fn generate_restart_mcfunction(&self) -> anyhow::Result<()> {
         let mut restart_mcfunction = File::create(self.generator.path.join("datapacks/mapmaker/data/mapmaker/functions/restart.mcfunction"))?;
-
+        write_header(&mut restart_mcfunction)?;
         for i in 0..self.maps_per_frame {
             write!(
                 &mut restart_mcfunction,
@@ -272,4 +274,10 @@ impl InitializedGenerator<'_> {
         }
         Ok(())
     }
+}
+
+fn write_header(file: &mut File) -> anyhow::Result<()> {
+    // Write the header
+    file.write_all(HEADER.as_bytes())?;
+    Ok(())
 }
