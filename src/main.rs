@@ -14,7 +14,7 @@ mod output_generator;
 
 fn main() -> anyhow::Result<()> {
     let args = cli::run().with_context(|| "error getting arguments")?;
-    let mut generator = Generator::new(&args.output_path, args.starting_index, args.top_left, args.direction)?;
+    let generator = Generator::new(&args.output_path, args.starting_index, args.top_left, args.direction)?;
 
     let mut entries = fs::read_dir(&args.input_path)
         .with_context(|| "failed to read input directory")?
@@ -44,7 +44,7 @@ fn main() -> anyhow::Result<()> {
     println!("Starting conversion process...");
     let start = std::time::Instant::now();
 
-    generator.init_files(entries.len(), processor.map_columns as usize, processor.map_rows as usize)?;
+    let generator = generator.init_files(entries.len(), processor.map_columns as usize, processor.map_rows as usize)?;
 
     entries.par_iter().enumerate().progress_count(entries.len() as u64).for_each(|(frame, entry)| {
         let image = processor.process_file(entry).unwrap();

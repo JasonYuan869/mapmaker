@@ -87,21 +87,6 @@ impl Processor {
         Ok(map)
     }
 
-    /// Same as `convert_colors`, but parallelized by splitting the image into horizontal strips, with each strip lagging behind the previous one by two pixels.
-    // pub fn convert_colors_parallel(&self, mut image: RgbImage) -> anyhow::Result<Vec<[MapColor; 16384]>> {
-    //     let par = image.enumerate_pixels_mut().map(|pixel| Arc::new(RwLock::new(pixel))).collect::<Vec<_>>();
-    //     let result = Arc::new(RwLock::new(vec![[BLACK_INDEX; 16384]; (self.map_width * self.map_height) as usize]));
-    //     let mut indicies: Vec<AtomicUsize> = (0..self.map_rows+1).map(|_| AtomicUsize::new(0)).collect();
-    //     indicies[0].store(2, std::sync::atomic::Ordering::Relaxed);
-    //
-    //
-    //     return if let Ok(x) = Arc::try_unwrap(result) {
-    //         Ok(x.into_inner()?)
-    //     } else {
-    //         Err(anyhow::anyhow!("multiple remaining references to mc color vector"))
-    //     }
-    // }
-
     /// Converts the colors in the given image to the closest Minecraft map color.
     /// Returns a vector of Minecraft map colors split by map
     pub fn convert_colors(&self, mut image: RgbImage) -> Vec<[MapColor; 16384]> {
