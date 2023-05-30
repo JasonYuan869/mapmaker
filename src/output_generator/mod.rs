@@ -120,7 +120,6 @@ impl<'a> Generator<'a> {
             generator: self,
             frames,
             map_columns,
-            map_rows,
             maps_per_frame: map_columns * map_rows,
         })
     }
