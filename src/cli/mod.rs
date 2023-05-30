@@ -55,14 +55,14 @@ pub fn run() -> anyhow::Result<CliArgs> {
         .with_default("out/")
         .prompt()?;
 
-    let confirmation =
-        inquire::Confirm::new("All contents of the output folder will be overwritten. Continue?")
-            .with_default(true)
-            .prompt()?;
-
-    if !confirmation {
-        anyhow::bail!("user cancelled");
-    }
+    // let confirmation =
+    //     inquire::Confirm::new("All contents of the output folder will be overwritten. Continue?")
+    //         .with_default(true)
+    //         .prompt()?;
+    //
+    // if !confirmation {
+    //     anyhow::bail!("user cancelled");
+    // }
 
     Ok(CliArgs {
         top_left: (x, y, z),
